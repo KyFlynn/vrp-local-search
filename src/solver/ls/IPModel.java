@@ -12,6 +12,7 @@ public class IPModel {
 
     IloCplex cp;
     VRPInstance vrp;
+    IloNumVar[][][] vehicleArcChoice;
 
     public IPModel(VRPInstance vrp) throws IloException {
         this.cp = new IloCplex();
@@ -21,7 +22,7 @@ public class IPModel {
 
     public void initIPModel() throws IloException {
         // Create decision variable
-        IloNumVar[][][] vehicleArcChoice = new IloNumVar[vrp.numVehicles][vrp.numCustomers][vrp.numCustomers];
+        vehicleArcChoice = new IloNumVar[vrp.numVehicles][vrp.numCustomers][vrp.numCustomers];
         for (int v = 0; v < vrp.numVehicles; v++) {
             for (int i = 0; i < vrp.numCustomers; i++) {
                 for (int j = 0; j < vrp.numCustomers; j++) {
@@ -30,8 +31,8 @@ public class IPModel {
             }
         }
 
-        // Don't use edges to self
-        for (int ij = 0; ij < vrp.numCustomers; ij++) {
+        // Don't use edges to self except depot (index 0)
+        for (int ij = 1; ij < vrp.numCustomers; ij++) {
             for (int v = 0; v < vrp.numVehicles; v++) {
                 cp.addEq(vehicleArcChoice[v][ij][ij], 0);
             }
@@ -48,7 +49,7 @@ public class IPModel {
             }
         }
 
-        // Each customer is served (entry)
+        // Each customer is served (exit)
         for (int i = 0; i < vrp.numCustomers; i++) {
             IloNumExpr[] vehicleCustomerSlice = new IloNumExpr[vrp.numVehicles * vrp.numCustomers];
             for (int v = 0; v < vrp.numVehicles; v++) {
@@ -56,10 +57,14 @@ public class IPModel {
                     vehicleCustomerSlice[v * vrp.numCustomers + j] = vehicleArcChoice[v][i][j];
                 }
             }
-            cp.addEq(cp.sum(vehicleCustomerSlice), 1);
+            if (i == 0) {
+                cp.addEq(cp.sum(vehicleCustomerSlice), vrp.numVehicles);
+            } else {
+                cp.addEq(cp.sum(vehicleCustomerSlice), 1);
+            }
         }
 
-        // Each customer is served (exit)
+        // Each customer is served (entry)
         for (int j = 0; j < vrp.numCustomers; j++) {
             IloNumExpr[] vehicleCustomerSlice = new IloNumExpr[vrp.numVehicles * vrp.numCustomers];
             for (int v = 0; v < vrp.numVehicles; v++) {
@@ -67,7 +72,11 @@ public class IPModel {
                     vehicleCustomerSlice[v * vrp.numCustomers + i] = vehicleArcChoice[v][i][j];
                 }
             }
-            cp.addEq(cp.sum(vehicleCustomerSlice), 1);
+            if (j == 0) {
+                cp.addEq(cp.sum(vehicleCustomerSlice), vrp.numVehicles);
+            } else {
+                cp.addEq(cp.sum(vehicleCustomerSlice), 1);
+            }
         }
 
         // Each vehicle has a tour
@@ -79,11 +88,16 @@ public class IPModel {
                 }
                 IloNumExpr[] jSlice = new IloNumExpr[vrp.numCustomers];
                 for (int j = 0; j < vrp.numCustomers; j++) {
-                    iSlice[j] = vehicleArcChoice[v][c][j];
+                    jSlice[j] = vehicleArcChoice[v][c][j];
                 }
                 cp.addEq(cp.diff(cp.sum(iSlice), cp.sum(jSlice)), 0);
             }
         }
+
+        // Subtour elimination constraint
+//        for (int v = 0; v < vrp.numVehicles; v++) {
+//            Math.
+//        }
 
         // Capacity constraint
         for (int v = 0; v < vrp.numVehicles; v++) {
@@ -122,6 +136,15 @@ public class IPModel {
 
     public double solve() throws IloException {
         cp.solve();
+
+        for (int v = 0; v < vrp.numVehicles; v++) {
+            for (int i = 0; i < vrp.numCustomers; i++) {
+                for (int j = 0; j < vrp.numCustomers; j++) {
+                    System.out.printf("v: %d, i: %d, j: %d : %f\n", v, i, j, cp.getValue(vehicleArcChoice[v][i][j]));
+                }
+            }
+        }
+
         return cp.getObjValue();
     }
 
