@@ -27,9 +27,6 @@ public class Main {
         double objVal = ipModel.solve();
         watch.stop();
 
-        System.out.println("{\"Instance\": \"" + filename +
-                "\", \"Time\": " + String.format("%.2f", watch.getTime()) +
-                ", \"Result\": \"" + String.format("%.2f", objVal) + "\"" +
-                ", \"Solution\": \"--\"}");
+        System.out.println(ipModel.printSolution());
     }
 }
