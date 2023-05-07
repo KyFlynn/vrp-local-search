@@ -1,23 +1,30 @@
-package solver.ls;
+package solver;
 
 import ilog.concert.IloException;
 import ilog.concert.IloNumExpr;
 import ilog.concert.IloNumVar;
 import ilog.concert.IloNumVarType;
 import ilog.cplex.IloCplex;
+
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.lang.Math;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 // IP Approach
 public class IPModel {
     IloCplex cp;
     VRPInstance vrp;
     IloNumVar[][][] vehicleArcChoice;
-    boolean optimal = false;
+    boolean feasible = false;
 
     // Constructor
-    public IPModel(VRPInstance vrp) throws IloException {
+    public IPModel(VRPInstance vrp) throws IloException, FileNotFoundException {
         this.cp = new IloCplex();
+        OutputStream out = new FileOutputStream("output.txt");
+        this.cp.setOut(out);
         this.vrp = vrp;
         this.initIPModel();
     }
@@ -142,7 +149,7 @@ public class IPModel {
     }
 
     // Get the vehicle route information into a nice adjacency chart.
-    private int[][][] getInformation() throws IloException {
+    private int[][][] getVariableValues() throws IloException {
         // Let's grab the variables out bc they ain't shit
         int[][][] M = new int[vrp.numVehicles][vrp.numCustomers][vrp.numCustomers];
         for (int v = 0; v < vrp.numVehicles; v++) {
@@ -156,116 +163,167 @@ public class IPModel {
     }
 
     // Solve - this will loop until there are no subtours
-    public double solve() throws IloException {
-        optimal = true;
-
-        // Keep solving until we get no subtours
+    public double solve() throws Exception {
+        feasible = true;
         while (true) {
-            // Solve...
-            cp.solve();
-            
-            // Add constraints for all extra loops.
-            boolean loops = false;
-            int[][][] M = getInformation();
+            feasible = cp.solve();
+            boolean subtoursExist = false;
+            int[][][] M = getVariableValues();
+            System.out.println(Arrays.deepToString(M));
+            boolean[] visited = new boolean[vrp.numCustomers];
             for (int v = 0; v < vrp.numVehicles; v++) {
-                boolean[] visited = new boolean[vrp.numCustomers];
+                System.out.println(String.format("Analyzing Vehicle: %d", v));
 
-                // 1) DFS starting at the depot to see which loop is acceptable.
+                // 1) DFS starting at the depot to see which customers are in a valid tour.
+
+                // Keep track of the tour for printing.
+                ArrayList<Integer> tour = new ArrayList<>();
+                // Start at depot.
                 int curr = 0;
-                while (true) {
-                    // Mark as visited.
-                    visited[curr] = true;
-
-                    // Check if we can go to the depot; if so, we are done.
-                    if (M[v][curr][0] == 1) {
+                tour.add(curr);
+                visited[curr] = true;
+                // Check if an exit exists from the depot.
+                for (int i = 1; i < vrp.numCustomers; i++) {
+                    if (M[v][curr][i] == 1) {
+                        curr = i;
                         break;
                     }
-
-                    // Otherwise, go through the other locations and see what our next hop is.
-                    boolean found = false;
-                    for (int dest = 1; dest < vrp.numCustomers; dest++) {
-                        if (M[v][curr][dest] == 1) {
-                            curr = dest;
-                            break;
-                        }
-                    }
-                    if (!found) break; // Try the next src if there are no edges coming from this one (unsure if this is possible)
                 }
-                
-                // DFS starting at every possible customer to detect how many extra loops we have.
-                for (int src = 1; src < vrp.numCustomers; src++) {
-                    if (visited[src]) continue;
-
-                    // Keep track of this subtour
-                    ArrayList<Integer> path = new ArrayList<>();
-                    ArrayList<IloNumExpr> subtour = new ArrayList<>();
-                    curr = src;
+                // If a tour other than depot self tour exists, begin DFS on it.
+                if (curr > 0) {
                     while (true) {
                         // Mark as visited.
                         visited[curr] = true;
-                        path.add(curr);
+                        tour.add(curr);
 
-                        // Check if we can go to the start of the loop; if so, we are done.
-                        if (M[v][curr][src] == 1) {
-                            subtour.add(vehicleArcChoice[v][curr][src]);
+                        // Check if we go to the depot next; if so we are done.
+                        if (M[v][curr][0] == 1) {
                             break;
                         }
 
-                        // Otherwise, go through the other locations and see what our next hop is.
+                        // Otherwise, travel through the arc
                         boolean found = false;
                         for (int dest = 1; dest < vrp.numCustomers; dest++) {
                             if (M[v][curr][dest] == 1) {
-                                subtour.add(vehicleArcChoice[v][curr][dest]);
                                 curr = dest;
                                 found = true;
                                 break;
                             }
                         }
-                        if (!found) break; // Try the next src if there are no edges coming from this one
+                        if (!found) {
+                            System.out.println(Arrays.deepToString(M));
+                            throw new Exception("Path is not a tour, model was implemented incorrectly.");
+                        }
                     }
+                }
+                System.out.println("TOUR FOUND:");
+                System.out.println(tour);
 
-                    // We need to enforce that all of these edges are never taken for any vehicle.
-                    if (subtour.size() > 0) {
-                        System.out.println("WE ARE REMOVING THE FOLLOWING TOUR:");
-                        System.out.println(path);
-                        cp.addLe(cp.sum(subtour.toArray(new IloNumExpr[subtour.size()])), subtour.size() - 1);
-                        loops = true;
+                // 2) DFS through all other arcs for this vehicle to see which customers are in a subtour.
+
+                for (int i = 1; i < vrp.numCustomers; i++) {
+                    // Customer already included in a discovered tour/subtour
+                    if (visited[i]) continue;
+                    for (int j = 1; j < vrp.numCustomers; j++) {
+                        // Customer already included in a discovered tour/subtour
+                        if (visited[j]) continue;
+
+                        // Subtour arc found
+                        if (M[v][i][j] == 1) {
+                            // Keep track of this subtour
+                            ArrayList<Integer> subtourCustomers = new ArrayList<>();
+                            ArrayList<IloNumExpr> subtour = new ArrayList<>();
+                            // Source is i
+                            int src = i;
+                            // Mark source as visited and add to subtour.
+                            visited[src] = true;
+                            subtourCustomers.add(src);
+                            // Travel through the first arc found, then DFS.
+                            curr = j;
+                            subtour.add(vehicleArcChoice[v][src][curr]);
+                            while (true) {
+                                // Mark as visited.
+                                visited[curr] = true;
+                                subtourCustomers.add(curr);
+
+                                // Check if we go to the source of the subtour next; if so we are done.
+                                if (M[v][curr][src] == 1) {
+                                    subtour.add(vehicleArcChoice[v][curr][src]);
+                                    break;
+                                }
+
+                                // Otherwise, go through the next arc in the subtour.
+                                boolean found = false;
+                                for (int dest = 1; dest < vrp.numCustomers; dest++) {
+                                    if (M[v][curr][dest] == 1) {
+                                        subtour.add(vehicleArcChoice[v][curr][dest]);
+                                        curr = dest;
+                                        break;
+                                    }
+                                }
+                                if (!found) {
+                                    System.out.println(Arrays.deepToString(M));
+                                    throw new Exception("Path is not a tour, model was implemented incorrectly.");
+                                }
+                            }
+                            // We need to enforce that all of these edges are never taken for any vehicle.
+                            if (subtour.size() > 0) {
+                                System.out.println("SUBTOUR FOUND:");
+                                System.out.println(subtourCustomers);
+                                System.out.println("");
+                                cp.addLe(cp.sum(subtour.toArray(new IloNumExpr[subtour.size()])), subtour.size() - 1);
+                                subtoursExist = true;
+                            }
+                        }
                     }
                 }
             }
-            if (!loops) return cp.getObjValue();
+            if (!subtoursExist) return cp.getObjValue();
         }
     }
 
     //  Extracts the solution into the desired format
     public String printSolution() throws IloException {
-        // Print out the objective value and whether or not it was optimal
-        String s = String.format("%.2f %d\n", cp.getObjValue(), optimal ? 1 : 0);
+        // Print out the objective value and whether it was optimal
+        String s = String.format("%.2f %d\n", cp.getObjValue(), feasible ? 1 : 0);
 
-        // Go through each vehicle and see what it's tour was
-        int[][][] M = getInformation();
+        // Go through each vehicle and see what its tour was
+        int[][][] M = getVariableValues();
         for (int v = 0; v < vrp.numVehicles; v++) {
             String row = "0 ";
             int curr = 0;
-
-            // Until we get back to the depot...
-            while (true) {
-                // Check if we can go to the depot; if so, we are done.
-                if (M[v][curr][0] == 1) {
-                    row += "0";
+            // Check if an exit exists from the depot.
+            for (int i = 1; i < vrp.numCustomers; i++) {
+                if (M[v][curr][i] == 1) {
+                    curr = i;
                     break;
                 }
-
-                // Otherwise, go through the other locations and see what our next hop is.
-                for (int dest = 1; dest < vrp.numCustomers; dest++) {
-                    if (M[v][curr][dest] == 1) {
-                        curr = dest;
-                        row += String.format("%d ", dest);
+            }
+            // If a non-depot exit exists
+            if (curr > 0) {
+                row += String.format("%d ", curr);
+                // Until we get back to the depot...
+                while (true) {
+                    // Check if we can go to the depot; if so, we are done.
+                    if (M[v][curr][0] == 1) {
+                        row += "0";
                         break;
                     }
+
+                    // Otherwise, go through the other locations and see what our next hop is.
+                    for (int dest = 1; dest < vrp.numCustomers; dest++) {
+                        if (M[v][curr][dest] == 1) {
+                            curr = dest;
+                            row += String.format("%d ", dest);
+                            break;
+                        }
+                    }
                 }
+            } else {
+                // Note: a case where no arc is chosen for the vehicle exists, so default to arc 0 - 0
+                row += "0";
             }
-            
+
             // Once we are back to the depot, add this row and do the next vehicle.
             s += row + "\n";
         }

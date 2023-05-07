@@ -1,4 +1,4 @@
-package solver.ls;
+package solver;
 
 public class Timer {
     private long startTime;

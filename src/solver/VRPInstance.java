@@ -1,4 +1,4 @@
-package solver.ls;
+package solver;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -7,12 +7,12 @@ import java.util.Scanner;
 
 public class VRPInstance {
     // VRP Input Parameters
-    int numCustomers;                // the number of customers
-    int numVehicles;            // the number of vehicles
-    int vehicleCapacity;            // the capacity of the vehicles
-    int[] demandOfCustomer;        // the demand of each customer
-    double[] xCoordOfCustomer;     // the x coordinate of each customer
-    double[] yCoordOfCustomer;    // the y coordinate of each customer
+    public int numCustomers;                // the number of customers
+    public int numVehicles;            // the number of vehicles
+    public int vehicleCapacity;            // the capacity of the vehicles
+    public int[] demandOfCustomer;        // the demand of each customer
+    public double[] xCoordOfCustomer;     // the x coordinate of each customer
+    public double[] yCoordOfCustomer;    // the y coordinate of each customer
 
     public VRPInstance(String fileName) {
         Scanner read = null;
