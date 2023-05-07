@@ -27,5 +27,9 @@ public class Main {
         watch.stop();
 
         System.out.println(ipModel.printSolution());
+//        System.out.println("{\"Instance\": \"" + filename +
+//                "\", \"Time\": " + String.format("%.2f",watch.getTime()) +
+//                ", \"Result\": \"--\"" +
+//                ", \"Solution\": \"--\"}");
     }
 }

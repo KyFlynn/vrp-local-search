@@ -23,8 +23,8 @@ public class IPModel {
     // Constructor
     public IPModel(VRPInstance vrp) throws IloException, FileNotFoundException {
         this.cp = new IloCplex();
-        OutputStream out = new FileOutputStream("output.txt");
-        this.cp.setOut(out);
+//        OutputStream out = new FileOutputStream("output.txt");
+//        this.cp.setOut(out);
         this.vrp = vrp;
         this.initIPModel();
     }
@@ -169,10 +169,10 @@ public class IPModel {
             feasible = cp.solve();
             boolean subtoursExist = false;
             int[][][] M = getVariableValues();
-            System.out.println(Arrays.deepToString(M));
+//            System.out.println(Arrays.deepToString(M));
             boolean[] visited = new boolean[vrp.numCustomers];
             for (int v = 0; v < vrp.numVehicles; v++) {
-                System.out.println(String.format("Analyzing Vehicle: %d", v));
+//                System.out.println(String.format("Analyzing Vehicle: %d", v));
 
                 // 1) DFS starting at the depot to see which customers are in a valid tour.
 
@@ -211,13 +211,13 @@ public class IPModel {
                             }
                         }
                         if (!found) {
-                            System.out.println(Arrays.deepToString(M));
+//                            System.out.println(Arrays.deepToString(M));
                             throw new Exception("Path is not a tour, model was implemented incorrectly.");
                         }
                     }
                 }
-                System.out.println("TOUR FOUND:");
-                System.out.println(tour);
+//                System.out.println("TOUR FOUND:");
+//                System.out.println(tour);
 
                 // 2) DFS through all other arcs for this vehicle to see which customers are in a subtour.
 
@@ -256,21 +256,21 @@ public class IPModel {
                                 boolean found = false;
                                 for (int dest = 1; dest < vrp.numCustomers; dest++) {
                                     if (M[v][curr][dest] == 1) {
-                                        subtour.add(vehicleArcChoice[v][curr][dest]);
                                         curr = dest;
+                                        subtour.add(vehicleArcChoice[v][curr][dest]);
+                                        found = true;
                                         break;
                                     }
                                 }
                                 if (!found) {
-                                    System.out.println(Arrays.deepToString(M));
-                                    throw new Exception("Path is not a tour, model was implemented incorrectly.");
+//                                    System.out.println(Arrays.deepToString(M));
+                                    throw new Exception("Path is not a subtour, model was implemented incorrectly.");
                                 }
                             }
                             // We need to enforce that all of these edges are never taken for any vehicle.
                             if (subtour.size() > 0) {
-                                System.out.println("SUBTOUR FOUND:");
-                                System.out.println(subtourCustomers);
-                                System.out.println("");
+//                                System.out.println("SUBTOUR FOUND:");
+//                                System.out.println(subtourCustomers);
                                 cp.addLe(cp.sum(subtour.toArray(new IloNumExpr[subtour.size()])), subtour.size() - 1);
                                 subtoursExist = true;
                             }

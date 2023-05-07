@@ -33,4 +33,5 @@ replay_pid*
 input/*
 Model.Lp
 output.txt
+output.tmp
 
