@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 
+// Edge class 
 class Edge implements Comparable<Edge> {
   int i, j;
   double savings;
@@ -34,6 +35,8 @@ class Edge implements Comparable<Edge> {
 	}
 }
 
+// Implement Clark-Wright's Savings Algorithm
+// NOTE: This may return solutions with too many tours!
 public class SavingsAlgorithm {
     VRPInstance vrp;
 
@@ -186,6 +189,35 @@ public class SavingsAlgorithm {
         }
       }
 
+      // If there is too many tours for cars, combine tours.
+      // NOTE: This combination strategy is NOT optimal!
+      // TODO: make more optimal
+      for (int x = 0; x < (this.tours.size() - this.invalid_tours.size()) - this.vrp.numVehicles; x++) {
+        for (int i = 0; i < this.tours.size(); i++) {
+          for (int j = 0; j < this.tours.size(); j++) {
+            if (i == j) continue;
+            // Check validity
+            ArrayList<Integer> to_remove = this.tours.get(i);
+            ArrayList<Integer> merge_into = this.tours.get(j);
+            if (this.invalid_tours.contains(to_remove) || this.invalid_tours.contains(merge_into)) continue;
+            if (this.capacity_of_tour.get(i) + this.capacity_of_tour.get(j) > this.vrp.vehicleCapacity) continue;
+
+            // Merge!
+            for (Integer c : to_remove) {
+              merge_into.add(c);
+              this.is_in_tour.put(c, j);
+            }
+            this.capacity_of_tour.put(j, this.capacity_of_tour.get(i) + this.capacity_of_tour.get(j));
+            this.invalid_tours.add(to_remove);
+          }
+        }
+      }
+
+      // Check if still too many tours
+      if (this.tours.size() - this.invalid_tours.size() > this.vrp.numVehicles) {
+        return String.format("ERROR(too many tours) - tours: %d vehicles: %d", this.tours.size() + this.invalid_tours.size(), this.vrp.numVehicles);
+      }
+
       // Calculate the total cost and generate result by running through each tour.
 
       // REAL ONE
@@ -206,6 +238,11 @@ public class SavingsAlgorithm {
                   Math.pow(vrp.yCoordOfCustomer[curr] - vrp.yCoordOfCustomer[0], 2)
         );
         result += String.format("%d %d ", curr, 0);
+      }
+
+      // Add to the result the empty trucks
+      for (int i = this.tours.size(); i < this.vrp.numVehicles; i++) {
+        result += "0 0 ";
       }
 
       // VISUALIZER ONE
