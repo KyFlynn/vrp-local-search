@@ -8,4 +8,4 @@
 #javac ./src/solver/ls/*.java
 
 ### DEPARTMENT MACHINES
-javac -classpath /local/projects/cplex/CPLEX_Studio221/cplex/lib/cplex.jar ./src/solver/*.java ./src/solver/ls/*.java
+javac -classpath /local/projects/cplex/CPLEX_Studio221/cplex/lib/cplex.jar ./src/solver/*.java ./src/solver/ls/*.java ./src/solver/savings/*.java

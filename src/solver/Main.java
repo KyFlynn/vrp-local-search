@@ -1,4 +1,5 @@
 package solver;
+import solver.savings.SavingsAlgorithm;
 
 import ilog.concert.IloException;
 
@@ -20,16 +21,18 @@ public class Main {
 
         Timer watch = new Timer();
         VRPInstance instance = new VRPInstance(input);
-        IPModel ipModel = new IPModel(instance);
+        // IPModel ipModel = new IPModel(instance);
+        SavingsAlgorithm savingsModel = new SavingsAlgorithm(instance);
 
         watch.start();
-        double objVal = ipModel.solve();
+        String solution = savingsModel.run();
+        // double objVal = ipModel.solve();
         watch.stop();
 
-        System.out.println(ipModel.printSolution());
-//        System.out.println("{\"Instance\": \"" + filename +
-//                "\", \"Time\": " + String.format("%.2f",watch.getTime()) +
-//                ", \"Result\": \"--\"" +
-//                ", \"Solution\": \"--\"}");
+        // System.out.println(ipModel.printSolution());
+       System.out.println("{\"Instance\": \"" + filename +
+               "\", \"Time\": " + String.format("%.2f",watch.getTime()) +
+               ", \"Result\": " + String.format("%.2f", savingsModel.get_cost()) + "" +
+               ", \"Solution\": \"" + solution +  "\"}");
     }
 }
