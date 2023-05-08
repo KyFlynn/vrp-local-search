@@ -1,9 +1,6 @@
 package solver;
-import solver.savings.SavingsAlgorithm;
+import solver.construction.savings.SavingsAlgorithm;
 
-import ilog.concert.IloException;
-
-import java.io.FileNotFoundException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 

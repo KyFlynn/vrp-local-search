@@ -1,4 +1,4 @@
-package solver.savings;
+package solver.construction.savings;
 
 import solver.VRPInstance;
 
@@ -6,7 +6,6 @@ import java.lang.Comparable;
 import java.lang.Math;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 
 // Edge class 
