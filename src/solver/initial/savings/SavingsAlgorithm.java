@@ -1,4 +1,4 @@
-package solver.construction.savings;
+package solver.initial.savings;
 
 import solver.VRPInstance;
 

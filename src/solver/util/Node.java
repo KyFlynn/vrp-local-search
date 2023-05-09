@@ -1,4 +1,4 @@
-package solver.ls;
+package solver.util;
 
 public class Node {
     public Node prev;

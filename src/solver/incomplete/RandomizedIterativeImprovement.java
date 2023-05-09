@@ -1,6 +1,7 @@
-package solver.ls;
+package solver.incomplete;
 
 import solver.VRPInstance;
+import solver.util.Node;
 
 public class RandomizedIterativeImprovement extends LocalSearcher {
 

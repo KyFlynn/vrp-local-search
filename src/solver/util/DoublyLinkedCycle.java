@@ -1,4 +1,4 @@
-package solver.ls;
+package solver.util;
 
 // Doubly linked cycle with pointer to starting node
 // When empty, the start node points to itself in both prev and next fields

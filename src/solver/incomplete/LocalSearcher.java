@@ -1,7 +1,9 @@
-package solver.ls;
+package solver.incomplete;
 
 import solver.VRPInstance;
-import solver.Timer;
+import solver.util.Node;
+import solver.util.Route;
+import solver.util.Timer;
 import java.util.Random;
 
 

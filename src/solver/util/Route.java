@@ -1,12 +1,12 @@
-package solver.ls;
+package solver.util;
 
 import solver.VRPInstance;
 
 public class Route {
 
     VRPInstance vrp;
-    int vehicle;
-    DoublyLinkedCycle route;
+    public int vehicle;
+    public DoublyLinkedCycle route;
     public double distance;
     public int demand;
 

@@ -1,4 +1,7 @@
-package solver;
+package solver.complete;
+
+import solver.util.Timer;
+import solver.VRPInstance;
 
 import ilog.concert.IloException;
 import ilog.concert.IloNumExpr;

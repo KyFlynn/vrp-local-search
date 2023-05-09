@@ -1,5 +1,7 @@
 package solver;
-import solver.construction.savings.SavingsAlgorithm;
+
+import solver.initial.savings.SavingsAlgorithm;
+import solver.util.Timer;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -22,14 +24,14 @@ public class Main {
         SavingsAlgorithm savingsModel = new SavingsAlgorithm(instance);
 
         watch.start();
-        String solution = savingsModel.run();
+        // String solution = savingsModel.run();
         // double objVal = ipModel.solve();
         watch.stop();
 
         // System.out.println(ipModel.printSolution());
-       System.out.println("{\"Instance\": \"" + filename +
-               "\", \"Time\": " + String.format("%.2f",watch.getTime()) +
-               ", \"Result\": " + String.format("%.2f", savingsModel.get_cost()) + "" +
-               ", \"Solution\": \"" + solution +  "\"}");
+    //    System.out.println("{\"Instance\": \"" + filename +
+    //            "\", \"Time\": " + String.format("%.2f",watch.getTime()) +
+    //            ", \"Result\": " + String.format("%.2f", savingsModel.get_cost()) + "" +
+    //            ", \"Solution\": \"" + solution +  "\"}");
     }
 }
