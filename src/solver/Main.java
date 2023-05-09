@@ -6,6 +6,7 @@ import solver.util.Timer;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 
 public class Main {
     public static void main(String[] args) throws Exception {
@@ -22,13 +23,18 @@ public class Main {
         Timer watch = new Timer();
         VRPInstance instance = new VRPInstance(input);
         // IPModel ipModel = new IPModel(instance);
-        // SavingsAlgorithm savingsModel = new SavingsAlgorithm(instance);
-        SweepAlgorithm sweepModel = new SweepAlgorithm(instance);
+        SavingsAlgorithm savingsModel = new SavingsAlgorithm(instance);
+        // SweepAlgorithm sweepModel = new SweepAlgorithm(instance);
 
         watch.start();
-        // String solution = savingsModel.run();
+        ArrayList<ArrayList<Integer>> res = savingsModel.run();
+        if (res == null) {
+            System.out.println("LKDHFSKDJHFLJSDHF");
+        } else {
+            System.out.println("ok");
+        }
         // double objVal = ipModel.solve();
-        sweepModel.run();
+        // sweepModel.run();
         watch.stop();
 
         // System.out.println(ipModel.printSolution());

@@ -45,19 +45,33 @@ public class SweepAlgorithm {
         }
         Collections.sort(customers);
 
-        // Sweep, baby
-        ArrayList<ArrayList<Integer>> res = new ArrayList<>();
-        ArrayList<Integer> curr = new ArrayList<>();
-        int curr_capacity = 0;
-        for (Customer c : customers) {
-            if (curr_capacity + this.vrp.demandOfCustomer[c.id] > this.vrp.vehicleCapacity) {
-              res.add(curr);
-              curr = new ArrayList<>();
-              curr_capacity = 0;
+        for (int offset = 0; offset < 5; offset++) {
+            // Sweep, baby
+            ArrayList<ArrayList<Integer>> routes = new ArrayList<>();
+            ArrayList<Integer> curr = new ArrayList<>();
+            int curr_capacity = 0;
+            for (Customer c : customers) {
+                if (curr_capacity + this.vrp.demandOfCustomer[c.id] > this.vrp.vehicleCapacity) {
+                  routes.add(curr);
+                  curr = new ArrayList<>();
+                  curr_capacity = 0;
+                }
+                curr.add(c.id);
+                curr_capacity += this.vrp.demandOfCustomer[c.id];
             }
-            curr.add(c.id);
-            curr_capacity += this.vrp.demandOfCustomer[c.id];
+            routes.add(curr);
+
+            // Check that we have enough route
+            if (routes.size() <= this.vrp.numVehicles) {
+              return routes;
+            }
+
+            // If not, try again with a new offset
+            
         }
-        return res;
+
+        // Return null if we failed :(
+        System.out.println("ASFLHDSLJFHSLJDFH FUCK YOU NOT ENOUGH CARS HAHAHHA");
+        return null;
     }
 }
