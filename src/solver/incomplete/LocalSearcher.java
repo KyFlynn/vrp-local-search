@@ -51,7 +51,7 @@ public abstract class LocalSearcher {
     }
 
     public int[][] initSolution() {
-
+        return null;
     }
 
     public double solve() {
