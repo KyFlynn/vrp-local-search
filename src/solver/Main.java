@@ -1,6 +1,7 @@
 package solver;
 
 import solver.initial.savings.SavingsAlgorithm;
+import solver.initial.sweep.SweepAlgorithm;
 import solver.util.Timer;
 
 import java.nio.file.Path;
@@ -21,11 +22,13 @@ public class Main {
         Timer watch = new Timer();
         VRPInstance instance = new VRPInstance(input);
         // IPModel ipModel = new IPModel(instance);
-        SavingsAlgorithm savingsModel = new SavingsAlgorithm(instance);
+        // SavingsAlgorithm savingsModel = new SavingsAlgorithm(instance);
+        SweepAlgorithm sweepModel = new SweepAlgorithm(instance);
 
         watch.start();
         // String solution = savingsModel.run();
         // double objVal = ipModel.solve();
+        sweepModel.run();
         watch.stop();
 
         // System.out.println(ipModel.printSolution());
