@@ -85,6 +85,10 @@ public abstract class LocalSearcher {
 
     public abstract Node chooseRelocationNode();
 
+    // ==================
+    // RELOCATION MOVES
+    // ==================
+
     public boolean checkRelocationFeasibility(int vehicle, Node n) {
         return (vehicleRoutes[vehicle].demand + vrp.demandOfCustomer[n.customer] < vrp.vehicleCapacity);
     }
@@ -112,6 +116,36 @@ public abstract class LocalSearcher {
         r2.add(node, newLocPrev, newLocPrev.vehicle, addedDistance(node, newLocPrev));
     }
 
-    // TODO: Add swapping neighborhoods on top of relocation (relocation may be infeasible while swapping feasible)
+    // ==================
+    // SWAPPING MOVES
+    // ==================
+
+
+    public boolean checkSwappingFeasibility(int v1, int v2, Node n1, Node n2) {
+        return (vehicleRoutes[v1].demand + vrp.demandOfCustomer[n2.customer] - vrp.demandOfCustomer[n1.customer] < vrp.vehicleCapacity)
+            && (vehicleRoutes[v2].demand + vrp.demandOfCustomer[n1.customer] - vrp.demandOfCustomer[n2.customer] < vrp.vehicleCapacity);
+    }
+
+    public double swappingScore(Node n1, Node n2) {
+        double old_n1 = euclideanDistance(n1.prev, n1) + euclideanDistance(n1, n1.next);
+        double old_n2 = euclideanDistance(n2.prev, n2) + euclideanDistance(n2, n2.next);
+        double new_n1 = euclideanDistance(n2.prev, n1) + euclideanDistance(n1, n2.next);
+        double new_n2 = euclideanDistance(n1.prev, n2) + euclideanDistance(n2, n1.next);
+        return new_n1 + new_n2 - old_n1 - old_n2;
+    }
+
+    public void swap(Node n1, Node n2) throws Exception {
+        Route r1 = vehicleRoutes[n1.vehicle];
+        Route r2 = vehicleRoutes[n2.vehicle];
+
+        Node n1_prev = n1.prev;
+        Node n2_prev = n2.prev;
+        
+        r1.remove(n1, removedDistance(n1));
+        r2.remove(n2, removedDistance(n2));
+
+        r2.add(n1, n2_prev, n2_prev.vehicle, addedDistance(n1, n2_prev));
+        r1.add(n2, n1_prev, n1_prev.vehicle, addedDistance(n2, n1_prev));
+    }
     
 }
