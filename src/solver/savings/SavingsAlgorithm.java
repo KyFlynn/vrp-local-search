@@ -86,7 +86,7 @@ public class SavingsAlgorithm {
     c. Or, both i and j have already been included in two different existing routes and neither point is interior to its route, in which case the two routes are merged.
     */
     // Run the algorithm
-    public String run() {
+    public ArrayList<ArrayList<Integer>> run() {
       // Process the savings list in order until it is empty.
       for (Edge e : this.savings_list) {
         // a. If neither are in a route
@@ -215,37 +215,38 @@ public class SavingsAlgorithm {
 
       // Check if still too many tours
       if (this.tours.size() - this.invalid_tours.size() > this.vrp.numVehicles) {
-        return String.format("ERROR(too many tours) - tours: %d vehicles: %d", this.tours.size() + this.invalid_tours.size(), this.vrp.numVehicles);
+        // return String.format("ERROR(too many tours) - tours: %d vehicles: %d", this.tours.size() + this.invalid_tours.size(), this.vrp.numVehicles);
+        return null;
       }
 
       // Calculate the total cost and generate result by running through each tour.
 
-      // REAL ONE
-      String result = "";
-      this.total_cost = 0.0f;
-      for (ArrayList<Integer> tour : this.tours) {
-        int curr = 0;
-        for (Integer x : tour) {
-          this.total_cost += Math.sqrt(
-            Math.pow(vrp.xCoordOfCustomer[curr] - vrp.xCoordOfCustomer[x], 2) +
-                    Math.pow(vrp.yCoordOfCustomer[curr] - vrp.yCoordOfCustomer[x], 2)
-          );
-          result += String.format("%d ", curr);
-          curr = x;
-        }
-        this.total_cost += Math.sqrt(
-          Math.pow(vrp.xCoordOfCustomer[curr] - vrp.xCoordOfCustomer[0], 2) +
-                  Math.pow(vrp.yCoordOfCustomer[curr] - vrp.yCoordOfCustomer[0], 2)
-        );
-        result += String.format("%d %d ", curr, 0);
-      }
+      // STRING PARSER FOR OUTPUT
+      // String result = "";
+      // this.total_cost = 0.0f;
+      // for (ArrayList<Integer> tour : this.tours) {
+      //   int curr = 0;
+      //   for (Integer x : tour) {
+      //     this.total_cost += Math.sqrt(
+      //       Math.pow(vrp.xCoordOfCustomer[curr] - vrp.xCoordOfCustomer[x], 2) +
+      //               Math.pow(vrp.yCoordOfCustomer[curr] - vrp.yCoordOfCustomer[x], 2)
+      //     );
+      //     result += String.format("%d ", curr);
+      //     curr = x;
+      //   }
+      //   this.total_cost += Math.sqrt(
+      //     Math.pow(vrp.xCoordOfCustomer[curr] - vrp.xCoordOfCustomer[0], 2) +
+      //             Math.pow(vrp.yCoordOfCustomer[curr] - vrp.yCoordOfCustomer[0], 2)
+      //   );
+      //   result += String.format("%d %d ", curr, 0);
+      // }
 
-      // Add to the result the empty trucks
-      for (int i = this.tours.size(); i < this.vrp.numVehicles; i++) {
-        result += "0 0 ";
-      }
+      // // Add to the result the empty trucks
+      // for (int i = this.tours.size(); i < this.vrp.numVehicles; i++) {
+      //   result += "0 0 ";
+      // }
 
-      // VISUALIZER ONE
+      // STRING PARSER FOR VISUALIZER
       // String result = "";
       // this.total_cost = 0.0f;
       // for (ArrayList<Integer> tour : this.tours) {
@@ -268,8 +269,9 @@ public class SavingsAlgorithm {
       //   result += String.format("%d %d\n", curr, 0);
       // }
       // System.out.println(result);
+      // return result.substring(0, result.length() - 1);
 
-      return result.substring(0, result.length() - 1);
+      return this.tours;
     }
 
     public double get_cost() {
