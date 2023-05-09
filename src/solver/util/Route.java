@@ -2,6 +2,8 @@ package solver.util;
 
 import solver.VRPInstance;
 
+import java.util.ArrayList;
+
 public class Route {
 
     VRPInstance vrp;
@@ -10,7 +12,7 @@ public class Route {
     public double distance;
     public int demand;
 
-    public Route(VRPInstance instance, int v, Node[] customerNodes, int[] customers) {
+    public Route(VRPInstance instance, int v, Node[] customerNodes, ArrayList<Integer> customers) {
         vrp = instance;
         vehicle = v;
         route =  new DoublyLinkedCycle(v, customerNodes, customers);
@@ -50,27 +52,27 @@ public class Route {
         }
         // Sum demand over customers
         do {
-            totalDemand += vrp.demandOfCustomer[customer.val];
+            totalDemand += vrp.demandOfCustomer[customer.customer];
             customer = customer.next;
         } while (customer != route.depot);
         return totalDemand;
     }
 
-    public void add(Node n, Node newLocPrev, double addedDist) {
-        route.addNode(n, newLocPrev);
+    public void add(Node n, Node newLocPrev, int newVal, double addedDist) {
+        route.addNode(n, newLocPrev, newVal);
         distance += addedDist;
-        demand += vrp.demandOfCustomer[n.val];
+        demand += vrp.demandOfCustomer[n.customer];
     }
 
     public void remove(Node n, double removedDist) throws Exception {
         route.removeNode(n);
         distance -= removedDist;
-        demand -= vrp.demandOfCustomer[n.val];
+        demand -= vrp.demandOfCustomer[n.customer];
     }
 
     public double euclideanDistance(Node c1, Node c2) {
-        double diffX = vrp.xCoordOfCustomer[c1.val] - vrp.xCoordOfCustomer[c2.val];
-        double diffY = vrp.yCoordOfCustomer[c1.val] - vrp.yCoordOfCustomer[c2.val];
+        double diffX = vrp.xCoordOfCustomer[c1.customer] - vrp.xCoordOfCustomer[c2.customer];
+        double diffY = vrp.yCoordOfCustomer[c1.customer] - vrp.yCoordOfCustomer[c2.customer];
         return Math.sqrt(diffX * diffX + diffY * diffY);
     }
 }
