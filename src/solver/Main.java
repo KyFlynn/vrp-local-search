@@ -1,5 +1,6 @@
 package solver;
 
+import solver.incomplete.RandomizedIterativeImprovement;
 import solver.initial.savings.SavingsAlgorithm;
 import solver.initial.sweep.SweepAlgorithm;
 import solver.initial.randomfeasible.CPSolutionFinder;
@@ -21,14 +22,16 @@ public class Main {
         String filename = path.getFileName().toString();
         System.out.println("Instance: " + input);
 
-        Timer watch = new Timer();
         VRPInstance instance = new VRPInstance(input);
+        Timer watch = new Timer();
         // IPModel ipModel = new IPModel(instance);
         // SavingsAlgorithm savingsModel = new SavingsAlgorithm(instance);
         // SweepAlgorithm sweepModel = new SweepAlgorithm(instance);
-        CPSolutionFinder cpModel = new CPSolutionFinder(instance);
+        // CPSolutionFinder cpModel = new CPSolutionFinder(instance);
 
         watch.start();
+        RandomizedIterativeImprovement solver = new RandomizedIterativeImprovement(instance, 5);
+        double res = solver.solve();
         // ArrayList<ArrayList<Integer>> res = savingsModel.run();
         // if (res == null) {
         //     System.out.println("LKDHFSKDJHFLJSDHF");
@@ -37,7 +40,7 @@ public class Main {
         // }
         // double objVal = ipModel.solve();
         // sweepModel.run();
-        ArrayList<ArrayList<Integer>> res = cpModel.run();
+        // ArrayList<ArrayList<Integer>> res = cpModel.run();
         watch.stop();
 
         System.out.println(res);

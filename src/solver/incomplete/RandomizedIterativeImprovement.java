@@ -3,6 +3,9 @@ package solver.incomplete;
 import solver.VRPInstance;
 import solver.util.Node;
 
+import java.util.Arrays;
+import java.util.Collections;
+
 public class RandomizedIterativeImprovement extends LocalSearcher {
 
     double randomizeProb;
@@ -12,10 +15,6 @@ public class RandomizedIterativeImprovement extends LocalSearcher {
         assert randomizeProb >= 0 && randomizeProb <= 1;
     }
 
-    // Random node choice TODO: Improve
-    public Node chooseRelocationNode() {
-        return customerNodes[(int) Math.floor(generator.nextDouble() * customerNodes.length)];
-    }
 
     public Node bestRelocation(Node n) {
         Node bestRelocatePrev = null;
@@ -46,16 +45,23 @@ public class RandomizedIterativeImprovement extends LocalSearcher {
     }
 
     public void step() throws Exception {
-        Node n = chooseRelocationNode();
-        double rand = generator.nextDouble();
-        if (rand > randomizeProb) {
-            searchNeighborhood(n);
-        } else {
-            while (true) {
-                Node randNode = chooseRelocationNode();
-                checkRelocationFeasibility(randNode.vehicle, n);
+        Node[] nodeOrder = randomCustomerOrdering(customerNodes);
+        for (Node n : nodeOrder) {
+            if (checkRelocationFeasibility(n.vehicle, n)) {
+//                double rand = generator.nextDouble();
+                searchNeighborhood(n);
+//                if (rand > randomizeProb) {
+//                    // TODO: Implement random move
+//                    //  searchNeighborhood(n);
+//                } else {
+//                    searchNeighborhood(n);
+//                }
+            } else{
+                System.out.println("No feasible move found.");
+                return;
             }
         }
+        checker.check(vrp, vehicleRoutes);
     }
 
 }

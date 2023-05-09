@@ -1,6 +1,7 @@
 package solver.incomplete;
 
 import solver.VRPInstance;
+import solver.initial.randomfeasible.CPSolutionFinder;
 import solver.initial.savings.SavingsAlgorithm;
 import solver.initial.sweep.SweepAlgorithm;
 import solver.util.Node;
@@ -21,6 +22,7 @@ public abstract class LocalSearcher {
     double currObjVal;
     Route[] bestRoutes;
     double bestObjVal;
+    Checker checker = new Checker();
 
     public LocalSearcher(VRPInstance instance, int solveTime) {
         runtime = solveTime;
@@ -52,6 +54,10 @@ public abstract class LocalSearcher {
         for (int v = 0; v < initialRoutes.size(); v++) {
             vehicleRoutes[v] = new Route(vrp, v, customerNodes, initialRoutes.get(v));
         }
+        for (int v = initialRoutes.size(); v < vrp.numVehicles; v++) {
+            vehicleRoutes[v] = new Route(vrp, v, customerNodes, new ArrayList<>());
+        }
+        assert checker.check(vrp, vehicleRoutes);
     }
 
     public ArrayList<ArrayList<Integer>> initSolution() {
@@ -62,7 +68,19 @@ public abstract class LocalSearcher {
         } else {
             SweepAlgorithm sweep = new SweepAlgorithm(vrp);
             initial = sweep.run();
-            return initial;
+            if (initial != null) {
+                return initial;
+            } else {
+                CPSolutionFinder cp = new CPSolutionFinder(vrp);
+                initial = cp.run();
+                if (initial != null) {
+                    return initial;
+                } else {
+                    System.out.println("No initial solution found after savings, sweep, CP solution.");
+                    return null;
+                }
+            }
+
         }
     }
 
@@ -83,7 +101,18 @@ public abstract class LocalSearcher {
 
     public abstract void searchNeighborhood(Node n) throws Exception;
 
-    public abstract Node chooseRelocationNode();
+    public Node[] randomCustomerOrdering(Node[] nodes) {
+        Node[] ordering = nodes.clone();
+        int currIndex = nodes.length;
+        while (currIndex != 0) {
+            int randomIndex = (int) Math.floor(generator.nextDouble() * currIndex);
+            currIndex--;
+            Node old = ordering[randomIndex];
+            ordering[randomIndex] = ordering[currIndex];
+            ordering[currIndex] = old;
+        }
+        return ordering;
+    }
 
     // ==================
     // RELOCATION MOVES
