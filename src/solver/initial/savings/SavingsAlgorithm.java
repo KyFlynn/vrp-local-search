@@ -49,7 +49,7 @@ public class SavingsAlgorithm {
     double total_cost;
 
     // Constructor
-    public SavingsAlgorithm (VRPInstance vrp) {
+    public SavingsAlgorithm(VRPInstance vrp) {
         this.vrp = vrp;
 
         // Create the savings list

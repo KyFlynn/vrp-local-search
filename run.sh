@@ -13,10 +13,14 @@ fi
 input=$1
 
 ### DEPARTMENT MACHINES
+# export the ilog license to run the solver
+export ILOG_LICENSE_FILE=/local/projects/cplex/ilm/current/linux/access.site.ilm
+
 # export the solver libraries into the path
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/local/projects/cplex/CPLEX_Studio221/cplex/bin/x86-64_linux
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/local/projects/cplex/CPLEX_Studio221/cpoptimizer/bin/x86-64_linux:/local/projects/cplex/CPLEX_Studio221/cplex/bin/x86-64_linux
 
 # add the solver jar to the classpath and run
-java -cp /local/projects/cplex/CPLEX_Studio221/cplex/lib/cplex.jar:src solver.Main $input
+java -cp /local/projects/cplex/CPLEX_Studio221/cpoptimizer/lib/ILOG.CP.jar:/local/projects/cplex/CPLEX_Studio221/cplex/lib/cplex.jar:src solver.Main $input
 
 #java -cp src solver.ls.Main $input

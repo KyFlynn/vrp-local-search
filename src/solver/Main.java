@@ -2,6 +2,7 @@ package solver;
 
 import solver.initial.savings.SavingsAlgorithm;
 import solver.initial.sweep.SweepAlgorithm;
+import solver.initial.randomfeasible.CPSolutionFinder;
 import solver.util.Timer;
 
 import java.nio.file.Path;
@@ -24,7 +25,8 @@ public class Main {
         VRPInstance instance = new VRPInstance(input);
         // IPModel ipModel = new IPModel(instance);
         // SavingsAlgorithm savingsModel = new SavingsAlgorithm(instance);
-        SweepAlgorithm sweepModel = new SweepAlgorithm(instance);
+        // SweepAlgorithm sweepModel = new SweepAlgorithm(instance);
+        CPSolutionFinder cpModel = new CPSolutionFinder(instance);
 
         watch.start();
         // ArrayList<ArrayList<Integer>> res = savingsModel.run();
@@ -34,8 +36,11 @@ public class Main {
         //     System.out.println("ok");
         // }
         // double objVal = ipModel.solve();
-        sweepModel.run();
+        // sweepModel.run();
+        ArrayList<ArrayList<Integer>> res = cpModel.run();
         watch.stop();
+
+        System.out.println(res);
 
         // System.out.println(ipModel.printSolution());
     //    System.out.println("{\"Instance\": \"" + filename +
