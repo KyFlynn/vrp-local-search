@@ -45,7 +45,7 @@ public class SweepAlgorithm {
         }
         Collections.sort(customers);
 
-        for (int offset = 0; offset < 5; offset++) {
+        for (int offset = 0; offset < 50; offset++) {
             // Sweep, baby
             ArrayList<ArrayList<Integer>> routes = new ArrayList<>();
             ArrayList<Integer> curr = new ArrayList<>();
@@ -67,11 +67,11 @@ public class SweepAlgorithm {
             }
 
             // If not, try again with a new offset
-            
+            customers.add(customers.get(0));
+            customers.remove(0);
         }
 
         // Return null if we failed :(
-        System.out.println("ASFLHDSLJFHSLJDFH FUCK YOU NOT ENOUGH CARS HAHAHHA");
         return null;
     }
 }

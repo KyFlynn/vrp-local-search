@@ -23,18 +23,18 @@ public class Main {
         Timer watch = new Timer();
         VRPInstance instance = new VRPInstance(input);
         // IPModel ipModel = new IPModel(instance);
-        SavingsAlgorithm savingsModel = new SavingsAlgorithm(instance);
-        // SweepAlgorithm sweepModel = new SweepAlgorithm(instance);
+        // SavingsAlgorithm savingsModel = new SavingsAlgorithm(instance);
+        SweepAlgorithm sweepModel = new SweepAlgorithm(instance);
 
         watch.start();
-        ArrayList<ArrayList<Integer>> res = savingsModel.run();
-        if (res == null) {
-            System.out.println("LKDHFSKDJHFLJSDHF");
-        } else {
-            System.out.println("ok");
-        }
+        // ArrayList<ArrayList<Integer>> res = savingsModel.run();
+        // if (res == null) {
+        //     System.out.println("LKDHFSKDJHFLJSDHF");
+        // } else {
+        //     System.out.println("ok");
+        // }
         // double objVal = ipModel.solve();
-        // sweepModel.run();
+        sweepModel.run();
         watch.stop();
 
         // System.out.println(ipModel.printSolution());
