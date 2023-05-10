@@ -270,7 +270,13 @@ public class SavingsAlgorithm {
       // System.out.println(result);
       // return result.substring(0, result.length() - 1);
 
-      return this.tours;
+      // Return only the good tours
+      ArrayList<ArrayList<Integer>> ret = new ArrayList<>();
+      for (ArrayList<Integer> tour : this.tours) {
+        if (this.invalid_tours.contains(tour)) continue;
+        ret.add(tour);
+      }
+      return ret;
     }
 
     public double get_cost() {
