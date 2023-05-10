@@ -27,7 +27,6 @@ replay_pid*
 *.iml
 *.xml
 .idea
-input/*
 Model.Lp
 output.txt
 output.tmp
