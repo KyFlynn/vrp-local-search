@@ -31,23 +31,30 @@ public class Checker {
 
     // Every customer is served exactly once
     public boolean customerServedCheck(VRPInstance vrp, Route[] routes) {
-        int[] customerServed = new int[vrp.numCustomers];
+        int[] customerServed = new int[vrp.numCustomers - 1];
+        int i = 0;
         for (Route r : routes) {
-            Node depot = r.route.depot;
+            Node depot = r.routeCycle.depot;
             if (depot.next == depot) {
                 continue;
             }
-            Node curr = depot;
-            while (curr.next != depot) {
+            Node curr = depot.next;
+            while (curr != depot) {
+                customerServed[curr.customer - 1] += 1;
                 curr = curr.next;
-                customerServed[curr.customer] += 1;
             }
         }
-        for (int c = 0; c < vrp.numCustomers; c++) {
-            if (customerServed[c] != 1) {
-                System.out.println(String.format("Customer %d is not served by the set of tours:", c));
+        for (int c = 1; c < vrp.numCustomers; c++) {
+            if (customerServed[c - 1] > 1) {
+                System.out.println(String.format("Customer %d is over-served by the vehicles:", c));
                 for (Route r : routes) {
-                    printTour(r);
+                    r.printRoute();
+                }
+                return false;
+            } else if (customerServed[c - 1] == 0) {
+                System.out.println(String.format("Customer %d is not served by the vehicles:", c));
+                for (Route r : routes) {
+                    r.printRoute();
                 }
                 return false;
             }
@@ -58,9 +65,9 @@ public class Checker {
 
     // Depot implemented correctly
     public boolean depotCheck(Route r) {
-        if (r.route.depot.customer != 0) {
+        if (r.routeCycle.depot.customer != 0) {
             System.out.println("Depot not set to customer 0.");
-            printTour(r);
+            r.printRoute();
             return false;
         } else {
             return true;
@@ -70,7 +77,7 @@ public class Checker {
 
     // Same vehicle check
     public boolean sameVehicleCheck(Route r) {
-        Node depot = r.route.depot;
+        Node depot = r.routeCycle.depot;
         if (depot.next == depot) {
             return true;
         }
@@ -81,7 +88,7 @@ public class Checker {
             if (curr.vehicle != v) {
                 System.out.println(String.format("Customer in tour thinks it's in vehicle %d but is in %d",
                         curr.vehicle, v));
-                printTour(r);
+                r.printRoute();
                 return false;
             }
         }
@@ -90,11 +97,11 @@ public class Checker {
 
     // All routes are tours
     public boolean tourCheck(VRPInstance vrp, Route r) {
-        Node depot = r.route.depot;
+        Node depot = r.routeCycle.depot;
         if (depot.next == depot) {
             if (depot.prev != depot) {
                 System.out.println("Depot not pointing to itself correctly.");
-                printTour(r);
+                r.printRoute();
                 return false;
             } else {
                 return true;
@@ -106,18 +113,18 @@ public class Checker {
             i += 1;
             if (curr.next.prev != curr) {
                 System.out.println("Previous pointer incorrect in cycle");
-                printTour(r);
+                r.printRoute();
                 return false;
             }
             curr = curr.next;
             if (curr == null) {
                 System.out.println("Found null in 'next' field of node.");
-                printTour(r);
+                r.printRoute();
                 return false;
             }
             if (i > vrp.numCustomers) {
                 System.out.println("Tour longer than number of customers.");
-                printTour(r);
+                r.printRoute();
                 return false;
             }
         }
@@ -126,7 +133,7 @@ public class Checker {
 
     // Feasibility check
     public boolean feasibilityCheck(VRPInstance vrp, Route r) {
-        Node depot = r.route.depot;
+        Node depot = r.routeCycle.depot;
         if (depot.next == depot) {
             return true;
         }
@@ -138,7 +145,7 @@ public class Checker {
         }
         if (demand > vrp.vehicleCapacity) {
             System.out.println("Vehicle capacity exceeded.");
-            printTour(r);
+            r.printRoute();
             return false;
         }
         return true;
@@ -146,7 +153,7 @@ public class Checker {
 
     // Distance check?
     public boolean distanceCheck(VRPInstance vrp, Route r) {
-        Node depot = r.route.depot;
+        Node depot = r.routeCycle.depot;
         if (depot.next == depot) {
             return true;
         }
@@ -164,22 +171,10 @@ public class Checker {
         distance += Math.sqrt(diffX * diffX + diffY * diffY);
         if (distance != r.distance) {
             System.out.println(String.format("Distance value %.2f but route thinks it's %.2f", distance, r.distance));
-            printTour(r);
+            r.printRoute();
             return false;
         }
         return true;
-    }
-
-
-    public void printTour(Route r) {
-        System.out.println("Issue with tour —> DFS looks like:");
-        Node depot = r.route.depot;
-        System.out.print(String.format("%d <- %d -> %d, ", depot.prev, depot, depot.next));
-        Node curr = depot;
-        while (curr.next != depot) {
-            curr = curr.next;
-            System.out.print(String.format("%d <- %d -> %d, ", curr.prev, curr, curr.next));
-        }
     }
 
 }

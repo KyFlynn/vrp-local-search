@@ -66,7 +66,7 @@ public class CPSolutionFinder {
         ArrayList<Integer> curr = new ArrayList<>();
         for (int c = 0; c < this.vrp.numCustomers-1; c++) {
           if (cp.getValue(data[v][c]) == 1) {
-            curr.add(c);
+            curr.add(c+1);
           }
         }
         res.add(curr);
