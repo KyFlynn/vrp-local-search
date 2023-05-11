@@ -42,7 +42,7 @@ public class BestImprovement extends LocalSearcher {
                 } while (curr.next != depot);
             }
         }
-        return new Pair(bestRelocatePrev, bestCost);
+        return new Pair<>(bestRelocatePrev, bestCost);
     }
 
     public Pair<Node, Double> findBestSwap(Node n) {
@@ -73,18 +73,18 @@ public class BestImprovement extends LocalSearcher {
                 curr = curr.next;
             }
         }
-        return new Pair(bestSwapNode, bestCost);
+        return new Pair<>(bestSwapNode, bestCost);
     }
 
     public Pair<Node, Integer> searchNeighborhood(Node n) {
-        Pair bestLocalRelocate = findBestRelocation(n);
-        Pair bestLocalSwap = findBestSwap(n);
-        int moveType = (double) bestLocalRelocate.y < (double) bestLocalSwap.y ? 0 : 1;
+        Pair<Node, Double> bestLocalRelocate = findBestRelocation(n);
+        Pair<Node, Double> bestLocalSwap = findBestSwap(n);
+        int moveType = bestLocalRelocate.y < bestLocalSwap.y ? 0 : 1;
         switch (moveType) {
             case 0:
-                return new Pair(bestLocalRelocate, 0);
+                return new Pair<>(bestLocalRelocate.x, 0);
             case 1:
-                return new Pair(bestLocalSwap, 0);
+                return new Pair<>(bestLocalSwap.x, 1);
         }
         return null;
     }
@@ -104,12 +104,14 @@ public class BestImprovement extends LocalSearcher {
             }
         }
         double cost = 0;
-        if (bestMove.x != null) {
+        if (bestMove != null) {
             switch (bestMove.y) {
                 case 0:
                     cost = relocate(choice, bestMove.x);
+                    break;
                 case 1:
                     cost = swap(choice, bestMove.x);
+                    break;
             }
             System.out.println(currObjVal);
             currObjVal += cost;
