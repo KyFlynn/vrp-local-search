@@ -2,6 +2,7 @@ package solver;
 
 import solver.complete.IPModel;
 import solver.incomplete.BestImprovement;
+import solver.incomplete.SimulatedAnnealing;
 import solver.util.Timer;
 
 import java.nio.file.Path;
@@ -9,7 +10,7 @@ import java.nio.file.Paths;
 
 
 public class Main {
-    static int NUM_TRIES = 10;
+    static int NUM_TRIES = 1;
 
     public static void main(String[] args) throws Exception {
         if (args.length == 0) {
@@ -35,7 +36,10 @@ public class Main {
             ipModel.solutionToFile(filename);
         } else {
             for (int i = 0; i < NUM_TRIES; i++) {
-                BestImprovement solver = new BestImprovement(instance, 5);
+                double temperature = 1.0;
+                double alpha = 0.95;
+                // BestImprovement solver = new BestImprovement(instance, 5);
+                SimulatedAnnealing solver = new SimulatedAnnealing(instance, 5, temperature, alpha);
                 double currObjVal = solver.solve();
                 if (currObjVal < objVal) {
                     objVal = currObjVal;

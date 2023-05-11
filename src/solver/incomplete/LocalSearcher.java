@@ -83,7 +83,7 @@ public abstract class LocalSearcher {
     }
 
     public Proposed proposeRandomMove() throws Exception {
-        System.out.println(String.format("Proposing random move\n"));
+        // System.out.println(String.format("Proposing random move\n"));
 
         while (true) {
             Node n1, n2;
@@ -93,6 +93,8 @@ public abstract class LocalSearcher {
                     // Relocation case
                     n1 = customerNodes[(int) Math.floor(generator.nextDouble() * (customerNodes.length-1))+1];
                     n2 = customerNodes[(int) Math.floor(generator.nextDouble() * (customerNodes.length-1))+1];
+                    if (n1 == n2) break;
+
                     if (checkRelocationFeasibility(n2.vehicle, n1)) {
                         double relocateCost = relocationCost(n1, n2);
                         return new Proposed(n1, n2, 0, relocateCost < 0.0);
@@ -102,9 +104,23 @@ public abstract class LocalSearcher {
                     // Swap case
                     n1 = customerNodes[(int) Math.floor(generator.nextDouble() * (customerNodes.length-1))+1];
                     n2 = customerNodes[(int) Math.floor(generator.nextDouble() * (customerNodes.length-1))+1];
+                    if (n1 == n2) break;
+
                     if (checkSwappingFeasibility(n1.vehicle, n2.vehicle, n1, n2)) {
-                        double swapCost = swappingCost(n1, n2);
-                        return new Proposed(n1, n2, 1, swapCost < 0.0);
+                        double cost = 0;
+                        // Neighbors cases
+                        if (n1.next == n2) {
+                            // !! Sets order to n1 -> n2 for all calls !!
+                            cost = swappingNeighborsCost(n1, n2);
+                            return new Proposed(n1, n2, 1, cost < 0.0);
+                        } else if (n2.next == n1) {
+                            cost = swappingNeighborsCost(n2, n1);
+                            return new Proposed(n2, n1, 1, cost < 0.0);
+                        } else {
+                            // Standard case
+                            cost = swappingCost(n1, n2);
+                            return new Proposed(n1, n2, 1, cost < 0.0);
+                        }
                     }
                     break;
             }

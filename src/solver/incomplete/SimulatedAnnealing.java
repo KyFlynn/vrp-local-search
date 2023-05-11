@@ -29,7 +29,8 @@ public class SimulatedAnnealing extends LocalSearcher {
                 }
                 checker.check(vrp, vehicleRoutes);
                 this.temperature *= this.alpha;
-                return true;
+                // System.out.println(this.temperature);
+                return false;
             }
         }
     }
@@ -40,15 +41,12 @@ public class SimulatedAnnealing extends LocalSearcher {
         int i = 0;
         boolean localMin;
         while (timer.getTime() < runtime && i < numIter) {
+            System.out.println(timer.getTime());
             i++;
-            localMin = step();
+            step();
             if (currObjVal < bestObjVal) {
                 bestObjVal = currObjVal;
                 bestRoutes = vehicleRoutes;
-            }
-            if (localMin) {
-                System.out.println("Local minimum reached.");
-                break;
             }
         }
         return bestObjVal;

@@ -29,7 +29,7 @@ public class RandomizedIteratedImprovement extends BestImprovement {
                 swap(move.n1, move.n2);
             }
             checker.check(vrp, vehicleRoutes);
-            return true;
+            return false;
         }
 
         // If we didn't take a random step, do a normal step
@@ -61,7 +61,7 @@ public class RandomizedIteratedImprovement extends BestImprovement {
             }
             return !(checker.check(vrp, vehicleRoutes));
         }
-        return true;
+        return false;
     }
 }
 
