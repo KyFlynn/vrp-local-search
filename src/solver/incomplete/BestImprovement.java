@@ -19,6 +19,7 @@ public class BestImprovement extends LocalSearcher {
         Node bestRelocatePrev = null;
         double bestCost = 0;
 
+        // Relocation neighborhood
         for (int v = 0; v < vrp.numVehicles; v++) {
             // Check if relocating customer to this vehicle is feasible.
             if (checkRelocationFeasibility(v, n)) {
@@ -26,13 +27,13 @@ public class BestImprovement extends LocalSearcher {
                 Node curr = depot;
                 // Go through possible relocation positions in vehicle's route.
                 do {
-                    // Ignore current positions of node n -> (same vehicle AND (n's previous or n or tour of 3)).
+                    // Ignore certain relocation positions -> (same vehicle AND (n's previous or same as n or tour of 3)).
                     if (n.vehicle == curr.vehicle && (curr == n.prev || curr == n || n.prev == n.next.next)) {
                         curr = curr.next;
                         continue;
                     }
                     double cost = relocationCost(n, curr);
-                    System.out.println(String.format("Vehicle %d, Prev: %d, Cost: %.2f", v, curr.customer, cost));
+                    System.out.println(String.format("Relocation: Vehicle %d, Prev: %d, Cost: %.2f", v, curr.customer, cost));
                     if (cost <= bestCost) {
                         bestRelocatePrev = curr;
                         bestCost = cost;
@@ -41,6 +42,32 @@ public class BestImprovement extends LocalSearcher {
                 } while (curr.next != depot);
             }
         }
+
+        // Swapping neighborhood
+        for (int v = 0; v < vrp.numVehicles; v++) {
+            Node depot = vehicleRoutes[v].routeCycle.depot;
+            // Start at node after depot - swapping with depot is impossible.
+            Node curr = depot.next;
+            // Go through possible customer swaps in vehicle's route.
+            while (curr != depot) {
+                // Ignore certain swapping positions  -> (same vehicle AND (same as n or tour of 3)).
+                if (n.vehicle == curr.vehicle && (curr == n || n.prev == n.next.next)) {
+                    curr = curr.next;
+                    continue;
+                }
+                // Check if feasible.
+                if (checkSwappingFeasibility(n.vehicle, curr.vehicle, n, curr)) {
+                    double cost = swappingCost(n, curr);
+                    System.out.println(String.format("Swapping: Vehicle %d, Prev: %d, Cost: %.2f", v, curr.customer, cost));
+                    if (cost <= bestCost) {
+                        bestRelocatePrev = curr;
+                        bestCost = cost;
+                    }
+                }
+                curr = curr.next;
+            }
+        }
+
         return bestRelocatePrev;
     }
 
@@ -64,8 +91,7 @@ public class BestImprovement extends LocalSearcher {
             for (Route r : vehicleRoutes) {
                 r.printRoute();
             }
-            checker.check(vrp, vehicleRoutes);
-            return false;
+            return !(checker.check(vrp, vehicleRoutes));
         }
         return true;
     }

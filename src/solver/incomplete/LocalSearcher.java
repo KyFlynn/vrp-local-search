@@ -155,7 +155,8 @@ public abstract class LocalSearcher {
     // ==================
 
     public boolean checkRelocationFeasibility(int vehicle, Node n) {
-        return (vehicle == n.vehicle | vehicleRoutes[vehicle].demand + vrp.demandOfCustomer[n.customer] < vrp.vehicleCapacity);
+        return (vehicle == n.vehicle || vehicleRoutes[vehicle].demand +
+                vrp.demandOfCustomer[n.customer] < vrp.vehicleCapacity);
     }
 
     public double relocateAddedDistance(Node n, Node newLocPrev) {
@@ -194,11 +195,12 @@ public abstract class LocalSearcher {
     // ==================
 
     public boolean checkSwappingFeasibility(int v1, int v2, Node n1, Node n2) {
-        return (vehicleRoutes[v1].demand + vrp.demandOfCustomer[n2.customer] - vrp.demandOfCustomer[n1.customer] < vrp.vehicleCapacity)
-                && (vehicleRoutes[v2].demand + vrp.demandOfCustomer[n1.customer] - vrp.demandOfCustomer[n2.customer] < vrp.vehicleCapacity);
+        return (v1 == v2 || ((vehicleRoutes[v1].demand + vrp.demandOfCustomer[n2.customer] -
+                vrp.demandOfCustomer[n1.customer] < vrp.vehicleCapacity) && (vehicleRoutes[v2].demand +
+                vrp.demandOfCustomer[n1.customer] - vrp.demandOfCustomer[n2.customer] < vrp.vehicleCapacity)));
     }
 
-    public double swappingScore(Node n1, Node n2) {
+    public double swappingCost(Node n1, Node n2) {
         double old_n1 = euclideanDistance(n1.prev, n1) + euclideanDistance(n1, n1.next);
         double old_n2 = euclideanDistance(n2.prev, n2) + euclideanDistance(n2, n2.next);
         double new_n1 = euclideanDistance(n2.prev, n1) + euclideanDistance(n1, n2.next);

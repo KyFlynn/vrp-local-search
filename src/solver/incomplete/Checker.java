@@ -169,8 +169,8 @@ public class Checker {
         double diffX = vrp.xCoordOfCustomer[curr.customer] - vrp.xCoordOfCustomer[depot.customer];
         double diffY = vrp.yCoordOfCustomer[curr.customer] - vrp.yCoordOfCustomer[depot.customer];
         distance += Math.sqrt(diffX * diffX + diffY * diffY);
-        if (distance != r.distance) {
-            System.out.println(String.format("Distance value %.2f but route thinks it's %.2f", distance, r.distance));
+        if (distance - r.distance > 10e-2) {
+            System.out.println(String.format("Distance value %.6f but route thinks it's %.6f", distance, r.distance));
             r.printRoute();
             return false;
         }

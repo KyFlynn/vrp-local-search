@@ -86,7 +86,7 @@ public class Route {
 
     public void printRoute() {
         Node depot = routeCycle.depot;
-        System.out.println(String.format("Vehicle: %d", vehicle));
+        System.out.println(String.format("Vehicle: %d (demand=%d)", vehicle, demand));
         System.out.print(String.format("%d <- %d -> %d (v:%d)", depot.prev.customer, depot.customer,
                 depot.next.customer, depot.vehicle));
         Node curr = depot;
