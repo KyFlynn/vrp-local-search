@@ -49,6 +49,21 @@ public class DoublyLinkedCycle {
         n.vehicle = -1;
     }
 
+    public void swapNodes(Node n1, Node n2) throws Exception {
+        if (n1 == depot || n2 == depot) {
+            throw new Exception("Attempt to swap depot from cycle.");
+        }
+
+        int n1_vehicle = n1.vehicle;
+        int n2_vehicle = n2.vehicle;
+        int n1_customer = n1.customer;
+        int n2_customer = n2.customer;
+        n1.vehicle = n2_vehicle;
+        n2.vehicle = n1_vehicle;
+        n1.customer = n2_customer;
+        n2.customer = n1_customer;
+    }
+
     public void addNode(Node n, Node prevNode) {
         prevNode.next.prev = n;
         n.next = prevNode.next;

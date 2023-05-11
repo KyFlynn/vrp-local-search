@@ -78,6 +78,16 @@ public class Route {
         nCustomers -= 1;
     }
 
+    public void swap(Node n1, Node n2, Route r2, double addedDist1, double addedDist2) throws Exception {
+        routeCycle.swapNodes(n1, n2);
+        distance += addedDist1;
+        r2.distance += addedDist2;
+        demand -= vrp.demandOfCustomer[n1.customer];
+        demand += vrp.demandOfCustomer[n2.customer];
+        r2.demand += vrp.demandOfCustomer[n1.customer];
+        r2.demand -= vrp.demandOfCustomer[n2.customer];
+    }
+
     public double euclideanDistance(Node c1, Node c2) {
         double diffX = vrp.xCoordOfCustomer[c1.customer] - vrp.xCoordOfCustomer[c2.customer];
         double diffY = vrp.yCoordOfCustomer[c1.customer] - vrp.yCoordOfCustomer[c2.customer];
