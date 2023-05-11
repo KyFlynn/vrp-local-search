@@ -17,7 +17,7 @@ import java.lang.Math;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-// IP Approach
+// IP complete algorithm approach (dynamic subtour constraints)
 public class IPModel {
     IloCplex cp;
     VRPInstance vrp;
@@ -27,8 +27,8 @@ public class IPModel {
     // Constructor
     public IPModel(VRPInstance vrp) throws IloException, FileNotFoundException {
         this.cp = new IloCplex();
-//        OutputStream out = new FileOutputStream("output.txt");
-//        this.cp.setOut(out);
+       // OutputStream out = new FileOutputStream("output.txt");
+       // this.cp.setOut(out);
         this.vrp = vrp;
         this.initIPModel();
     }
@@ -141,8 +141,8 @@ public class IPModel {
         }
         cp.addMinimize(cp.sum(totalDistance));
 
-//        // Save model to file for visual check -> ".Lp" extension required
-//        cp.exportModel("Model.Lp");
+        // Save model to file for visual check -> ".Lp" extension required
+        // cp.exportModel("Model.Lp");
     }
 
     // Get the vehicle route information into a nice adjacency chart.
@@ -166,15 +166,15 @@ public class IPModel {
             feasible = cp.solve();
             boolean subtoursExist = false;
             int[][][] M = getVariableValues();
-//            System.out.println(Arrays.deepToString(M));
+            // System.out.println(Arrays.deepToString(M));
             // 1) DFS starting at the depot to see which customers are in a valid tour.
             boolean[] visited = new boolean[vrp.numCustomers];
             for (int v = 0; v < vrp.numVehicles; v++) {
                 // Keep track of the tour for printing.
-                ArrayList<Integer> tour = new ArrayList<>();
+                // ArrayList<Integer> tour = new ArrayList<>();
                 // Start at depot.
                 int curr = 0;
-                tour.add(curr);
+                // tour.add(curr);
                 visited[curr] = true;
                 // Check if an exit exists from the depot.
                 for (int i = 1; i < vrp.numCustomers; i++) {
@@ -188,7 +188,7 @@ public class IPModel {
                     while (true) {
                         // Mark as visited.
                         visited[curr] = true;
-                        tour.add(curr);
+                        // tour.add(curr);
 
                         // Check if we go to the depot next; if so we are done.
                         if (M[v][curr][0] == 1) {
@@ -210,11 +210,11 @@ public class IPModel {
                         }
                     }
                 }
-//                System.out.println("Tour found:");
-//                for (int i = 0; i < tour.size(); i++) {
-//                    System.out.print(String.format("%d ", tour.get(i)));
-//                }
-//                System.out.println("");
+               // System.out.println("Tour found:");
+               // for (int i = 0; i < tour.size(); i++) {
+               //     System.out.print(String.format("%d ", tour.get(i)));
+               // }
+               // System.out.println("");
             }
 
             // 2) DFS through all other arcs for this vehicle to see which customers are in a subtour.
@@ -261,11 +261,11 @@ public class IPModel {
                             }
                             // We need to enforce that all of these subtours are never taken for any vehicle.
                             if (subtourCustomers.size() > 0) {
-                                System.out.println("Subtour found:");
-                                for (int c = 0; c < subtourCustomers.size(); c++) {
-                                    System.out.print(String.format("%d ", subtourCustomers.get(c)));
-                                }
-                                System.out.println("");
+                                // System.out.println("Subtour found:");
+                                // for (int c = 0; c < subtourCustomers.size(); c++) {
+                                //     System.out.print(String.format("%d ", subtourCustomers.get(c)));
+                                // }
+                                // System.out.println("");
                                 ArrayList<IloNumExpr> subtourEdges = new ArrayList<>();
                                 for (int veh = 0; veh < vrp.numVehicles; veh++) {
                                     subtourEdges.add(

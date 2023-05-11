@@ -27,15 +27,16 @@ public abstract class LocalSearcher {
     Checker checker = new Checker();
     int numIter = Hyperparameters.numIter;
 
-    public LocalSearcher(VRPInstance instance, int solveTime) {
+    public LocalSearcher(VRPInstance instance, int solveTime) throws FileNotFoundException {
         runtime = solveTime;
         vrp = instance;
-        customerNodes =  new Node[vrp.numCustomers - 1];
-        for (int i = 0; i < vrp.numCustomers-1; i++) {
-            customerNodes[i] = new Node(null, i+1, -1, null);
+        customerNodes = new Node[vrp.numCustomers - 1];
+        for (int i = 0; i < vrp.numCustomers - 1; i++) {
+            customerNodes[i] = new Node(null, i + 1, -1, null);
         }
         ArrayList<ArrayList<Integer>> initialRoutes = initSolution();
         printInitialRoutes(initialRoutes);
+        initialRoutesToFile(initialRoutes);
         vehicleRoutes = new Route[vrp.numVehicles];
         initRoutes(initialRoutes);
         currObjVal = 0;
@@ -51,7 +52,7 @@ public abstract class LocalSearcher {
 
     public abstract double solve() throws Exception;
 
-    public void initRoutes(ArrayList<ArrayList<Integer>>  initialRoutes) {
+    public void initRoutes(ArrayList<ArrayList<Integer>> initialRoutes) {
         assert (initialRoutes.size() <= vrp.numVehicles);
         for (int v = 0; v < initialRoutes.size(); v++) {
             vehicleRoutes[v] = new Route(vrp, v, customerNodes, initialRoutes.get(v));
@@ -65,16 +66,6 @@ public abstract class LocalSearcher {
         }
         System.out.println("");
         assert checker.check(vrp, vehicleRoutes);
-    }
-
-    public void printInitialRoutes(ArrayList<ArrayList<Integer>> initialRoutes) {
-        System.out.println("The initial solution is:");
-        for (int i = 0; i < initialRoutes.size(); i++) {
-            for (int j = 0; j < initialRoutes.get(i).size(); j++) {
-                System.out.print(String.format("%d ", initialRoutes.get(i).get(j)));
-            }
-            System.out.print("\n");
-        }
     }
 
     public ArrayList<ArrayList<Integer>> initSolution() {
@@ -123,43 +114,12 @@ public abstract class LocalSearcher {
         return ordering;
     }
 
-    public String bestSolutionToString() {
-        String solution = "";
-        for (Route r : bestRoutes) {
-            solution += "0 ";
-            Node curr = r.routeCycle.depot.next;
-            while (curr != r.routeCycle.depot) {
-                solution += String.format("%d ", curr.customer);
-                curr = curr.next;
-            }
-            solution += "0 ";
-        }
-        return solution;
-    }
-
-    public void bestSolutionToFile(String filename) throws FileNotFoundException {
-        PrintStream out = new PrintStream(new FileOutputStream("input/" + filename + ".sol"));
-        String solution = String.format("%.2f 0", bestObjVal);
-        for (Route r : bestRoutes) {
-            solution += "\n0 ";
-            Node curr = r.routeCycle.depot.next;
-            while (curr != r.routeCycle.depot) {
-                solution += String.format("%d ", curr.customer);
-                curr = curr.next;
-            }
-            solution += "0";
-        }
-        out.print(solution);
-        out.flush();
-        out.close();
-    }
-
     // ==================
     // RELOCATION MOVES
     // ==================
 
     public boolean checkRelocationFeasibility(int vehicle, Node n) {
-        return (vehicleRoutes[vehicle].demand + vrp.demandOfCustomer[n.customer] < vrp.vehicleCapacity);
+        return (vehicle == n.vehicle | vehicleRoutes[vehicle].demand + vrp.demandOfCustomer[n.customer] < vrp.vehicleCapacity);
     }
 
     public double relocateAddedDistance(Node n, Node newLocPrev) {
@@ -199,7 +159,7 @@ public abstract class LocalSearcher {
 
     public boolean checkSwappingFeasibility(int v1, int v2, Node n1, Node n2) {
         return (vehicleRoutes[v1].demand + vrp.demandOfCustomer[n2.customer] - vrp.demandOfCustomer[n1.customer] < vrp.vehicleCapacity)
-            && (vehicleRoutes[v2].demand + vrp.demandOfCustomer[n1.customer] - vrp.demandOfCustomer[n2.customer] < vrp.vehicleCapacity);
+                && (vehicleRoutes[v2].demand + vrp.demandOfCustomer[n1.customer] - vrp.demandOfCustomer[n2.customer] < vrp.vehicleCapacity);
     }
 
     public double swappingScore(Node n1, Node n2) {
@@ -216,12 +176,72 @@ public abstract class LocalSearcher {
 
         Node n1_prev = n1.prev;
         Node n2_prev = n2.prev;
-        
+
         r1.remove(n1, relocateRemovedDistance(n1));
         r2.remove(n2, relocateRemovedDistance(n2));
 
         r2.add(n1, n2_prev, relocateAddedDistance(n1, n2_prev));
         r1.add(n2, n1_prev, relocateAddedDistance(n2, n1_prev));
     }
-    
+
+    // ==================
+    // UTILS
+    // ==================
+
+    public void printInitialRoutes(ArrayList<ArrayList<Integer>> initialRoutes) {
+        System.out.println("The initial solution is:");
+        for (int i = 0; i < initialRoutes.size(); i++) {
+            for (int j = 0; j < initialRoutes.get(i).size(); j++) {
+                System.out.print(String.format("%d ", initialRoutes.get(i).get(j)));
+            }
+            System.out.print("\n");
+        }
+    }
+
+    public void initialRoutesToFile(ArrayList<ArrayList<Integer>> initialRoutes) throws FileNotFoundException {
+        PrintStream out = new PrintStream(new FileOutputStream("initial.sol"));
+        String solution = String.format("-1 0", bestObjVal);
+        for (int i = 0; i < initialRoutes.size(); i++) {
+            solution += "\n0 ";
+            for (int j = 0; j < initialRoutes.get(i).size(); j++) {
+                solution += String.format("%d ", initialRoutes.get(i).get(j));
+            }
+            solution += "0";
+        }
+        out.print(solution);
+        out.flush();
+        out.close();
+    }
+
+    public String bestSolutionToString() {
+        String solution = "";
+        for (Route r : bestRoutes) {
+            solution += "0 ";
+            Node curr = r.routeCycle.depot.next;
+            while (curr != r.routeCycle.depot) {
+                solution += String.format("%d ", curr.customer);
+                curr = curr.next;
+            }
+            solution += "0 ";
+        }
+        return solution;
+    }
+
+    public void bestSolutionToFile(String filename) throws FileNotFoundException {
+        PrintStream out = new PrintStream(new FileOutputStream("input/" + filename + ".sol"));
+        String solution = String.format("%.2f 0", bestObjVal);
+        for (Route r : bestRoutes) {
+            solution += "\n0 ";
+            Node curr = r.routeCycle.depot.next;
+            while (curr != r.routeCycle.depot) {
+                solution += String.format("%d ", curr.customer);
+                curr = curr.next;
+            }
+            solution += "0";
+        }
+        out.print(solution);
+        out.flush();
+        out.close();
+    }
+
 }

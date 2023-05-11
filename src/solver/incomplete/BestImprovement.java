@@ -5,16 +5,20 @@ import solver.util.Node;
 import solver.util.Route;
 import solver.util.Timer;
 
+import java.io.FileNotFoundException;
+
 public class BestImprovement extends LocalSearcher {
 
 
-    public BestImprovement(VRPInstance instance, int solveTime) {
+    public BestImprovement(VRPInstance instance, int solveTime) throws FileNotFoundException {
         super(instance, solveTime);
     }
 
     public Node findBestNeighborhoodMove(Node n) {
+        System.out.println(String.format("Choosing move for vehicle %d, customer %d", n.vehicle, n.customer));
         Node bestRelocatePrev = null;
         double bestCost = 0;
+
         for (int v = 0; v < vrp.numVehicles; v++) {
             // Check if relocating customer to this vehicle is feasible.
             if (checkRelocationFeasibility(v, n)) {
@@ -28,6 +32,7 @@ public class BestImprovement extends LocalSearcher {
                         continue;
                     }
                     double cost = relocationCost(n, curr);
+                    System.out.println(String.format("Vehicle %d, Prev: %d, Cost: %.2f", v, curr.customer, cost));
                     if (cost <= bestCost) {
                         bestRelocatePrev = curr;
                         bestCost = cost;
@@ -70,7 +75,7 @@ public class BestImprovement extends LocalSearcher {
         timer.start();
         int i = 0;
         boolean localMin;
-        while(timer.getTime() < runtime && i < numIter) {
+        while (timer.getTime() < runtime && i < numIter) {
             i++;
             localMin = step();
             if (currObjVal < bestObjVal) {
@@ -84,7 +89,6 @@ public class BestImprovement extends LocalSearcher {
         }
         return bestObjVal;
     }
-
 
 
 }
