@@ -25,7 +25,7 @@ public class Main {
         Timer watch = new Timer();
         VRPInstance instance = new VRPInstance(input);
         double objVal = Double.POSITIVE_INFINITY;
-        String solution;
+        String solution = "";
         watch.start();
         // Complete algorithm if numCustomers low enough
         if (instance.numCustomers < 10) {

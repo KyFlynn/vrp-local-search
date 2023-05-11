@@ -64,15 +64,19 @@ public class CPSolutionFinder {
    * Forbid a given solution
    */
   public void forbid(ArrayList<ArrayList<Integer>> solution) {
-    int truck = 0;
-    ArrayList<IloConstraint> constraints = new ArrayList<>();
-    for (ArrayList<Integer> route : solution) {
-      for (Integer stop : route) {
-        constraints.add(cp.eq(data[truck][stop-1], 1));
+    try {
+      int truck = 0;
+      ArrayList<IloConstraint> constraints = new ArrayList<>();
+      for (ArrayList<Integer> route : solution) {
+        for (Integer stop : route) {
+          constraints.add(cp.eq(data[truck][stop-1], 1));
+        }
+        truck++;
       }
-      truck++;
+      cp.add(cp.not(cp.and(constraints.toArray(new IloConstraint[constraints.size()]))));
+    } catch (IloException e) {
+      System.out.println("Error: " + e);
     }
-    cp.add(cp.not(cp.and(constraints.toArray(new IloConstraint[constraints.size()]))));
   }
 
   /**

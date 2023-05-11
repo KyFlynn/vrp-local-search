@@ -14,6 +14,20 @@ import java.util.ArrayList;
 import java.util.Random;
 
 
+class Proposed {
+    Node n1, n2;
+    int move; // 0 for relocation, 1 for swap
+    boolean improving;
+
+    public Proposed(Node n1, Node n2, int move, boolean improving) {
+        this.n1 = n1;
+        this.n2 = n2;
+        this.move = move;
+        this.improving = improving;
+    };
+}
+
+
 public abstract class LocalSearcher {
 
     VRPInstance vrp;
@@ -68,28 +82,29 @@ public abstract class LocalSearcher {
         assert checker.check(vrp, vehicleRoutes);
     }
 
-    public Node proposeRandomMove() {
+    public Proposed proposeRandomMove() {
         System.out.println(String.format("Proposing random move\n"));
 
         while (true) {
+            Node n1, n2;
             int choice = (int) Math.floor(generator.nextDouble() * 3);
             switch (choice) {
                 case 0:
                     // Relocation case
-                    Node n1 = customerNodes[(int) Math.floor(generator.nextDouble() * (customerNodes-1))+1];
-                    Node n2 = customerNodes[(int) Math.floor(generator.nextDouble() * (customerNodes-1))+1];
-                    if (checkRelocationFeasibility(n1, n2)) {
-                        double relocateCost = relocate(n1, n2);
-                        checker.check(vrp, vehicleRoutes);
+                    n1 = customerNodes[(int) Math.floor(generator.nextDouble() * (customerNodes.length-1))+1];
+                    n2 = customerNodes[(int) Math.floor(generator.nextDouble() * (customerNodes.length-1))+1];
+                    if (checkRelocationFeasibility(n2.vehicle, n1)) {
+                        double relocateCost = relocationCost(n1, n2);
+                        return new Proposed(n1, n2, 0, relocateCost < 0.0);
                     }
                     break;
                 case 1:
                     // Swap case
-                    Node n1 = customerNodes[(int) Math.floor(generator.nextDouble() * (customerNodes-1))+1];
-                    Node n2 = customerNodes[(int) Math.floor(generator.nextDouble() * (customerNodes-1))+1];
-                    if (checkSwappingFeasibility(n1, n2)) {
-                        double swapCost = swap(n1, n2);
-                        checker.check(vrp, vehicleRoutes);
+                    n1 = customerNodes[(int) Math.floor(generator.nextDouble() * (customerNodes.length-1))+1];
+                    n2 = customerNodes[(int) Math.floor(generator.nextDouble() * (customerNodes.length-1))+1];
+                    if (checkSwappingFeasibility(n1.vehicle, n2.vehicle, n1, n2)) {
+                        double swapCost = swappingCost(n1, n2);
+                        return new Proposed(n1, n2, 1, swapCost < 0.0);
                     }
                     break;
             }
@@ -103,10 +118,11 @@ public abstract class LocalSearcher {
 
         while (true) {
             int choice = (int) Math.floor(generator.nextDouble() * 3);
+            ArrayList<ArrayList<Integer>> initial;
             System.out.printf("Trying to find initial value using approach %d\n", choice);
             switch (choice) {
                 case 0:
-                    ArrayList<ArrayList<Integer>> initial = savings.run();
+                    initial = savings.run();
                     if (initial != null) {
                         System.out.println("Using savings.");
                         return initial;
@@ -120,6 +136,7 @@ public abstract class LocalSearcher {
                     }
                     break;
                 case 2:
+                    initial = cp.run();
                     if (initial != null) {
                         System.out.println("Using cp.");
                         return initial;
