@@ -50,7 +50,7 @@ public abstract class LocalSearcher {
         }
         ArrayList<ArrayList<Integer>> initialRoutes = initSolution();
         printInitialRoutes(initialRoutes);
-        initialRoutesToFile(initialRoutes);
+        // initialRoutesToFile(initialRoutes);
         vehicleRoutes = new Route[vrp.numVehicles];
         initRoutes(initialRoutes);
         currObjVal = 0;
@@ -279,7 +279,7 @@ public abstract class LocalSearcher {
     }
 
     public void initialRoutesToFile(ArrayList<ArrayList<Integer>> initialRoutes) throws FileNotFoundException {
-        PrintStream out = new PrintStream(new FileOutputStream("initial.sol"));
+        PrintStream out = new PrintStream(new FileOutputStream("solution/initial.sol"));
         String solution = String.format("-1 0", bestObjVal);
         for (int i = 0; i < initialRoutes.size(); i++) {
             solution += "\n0 ";
@@ -308,7 +308,7 @@ public abstract class LocalSearcher {
     }
 
     public void bestSolutionToFile(String filename) throws FileNotFoundException {
-        PrintStream out = new PrintStream(new FileOutputStream("input/" + filename + ".sol"));
+        PrintStream out = new PrintStream(new FileOutputStream("solutions/" + filename + ".sol"));
         String solution = String.format("%.2f 0", bestObjVal);
         for (Route r : bestRoutes) {
             solution += "\n0 ";
