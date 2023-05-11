@@ -97,7 +97,7 @@ public abstract class LocalSearcher {
 
                     if (checkRelocationFeasibility(n2.vehicle, n1)) {
                         double relocateCost = relocationCost(n1, n2);
-                        return new Proposed(n1, n2, 0, relocateCost < 0.0);
+                        return new Proposed(n1, n2, 0, relocateCost <= 0.0);
                     }
                     break;
                 case 1:
@@ -112,14 +112,14 @@ public abstract class LocalSearcher {
                         if (n1.next == n2) {
                             // !! Sets order to n1 -> n2 for all calls !!
                             cost = swappingNeighborsCost(n1, n2);
-                            return new Proposed(n1, n2, 1, cost < 0.0);
+                            return new Proposed(n1, n2, 1, cost <= 0.0);
                         } else if (n2.next == n1) {
                             cost = swappingNeighborsCost(n2, n1);
-                            return new Proposed(n2, n1, 1, cost < 0.0);
+                            return new Proposed(n2, n1, 1, cost <= 0.0);
                         } else {
                             // Standard case
                             cost = swappingCost(n1, n2);
-                            return new Proposed(n1, n2, 1, cost < 0.0);
+                            return new Proposed(n1, n2, 1, cost <= 0.0);
                         }
                     }
                     break;
@@ -128,41 +128,32 @@ public abstract class LocalSearcher {
     }
 
     public ArrayList<ArrayList<Integer>> initSolution() {
-        SavingsAlgorithm savings = new SavingsAlgorithm(vrp);
-        SweepAlgorithm sweep = new SweepAlgorithm(vrp);
-        CPSolutionFinder cp = new CPSolutionFinder(vrp);
+        ArrayList<ArrayList<Integer>> initial;
+        // System.out.printf("Trying to find initial value\n", choice);
 
-        while (true) {
-            int choice = (int) Math.floor(generator.nextDouble() * 3);
-            ArrayList<ArrayList<Integer>> initial;
-            System.out.printf("Trying to find initial value using approach %d\n", choice);
-            switch (choice) {
-                case 0:
-                    initial = savings.run();
-                    if (initial != null) {
-                        System.out.println("Using savings.");
-                        return initial;
-                    }
-                    break;
-                case 1:
-                    initial = sweep.run();
-                    if (initial != null) {
-                        System.out.println("Using sweep.");
-                        return initial;
-                    }
-                    break;
-                case 2:
-                    initial = cp.run();
-                    if (initial != null) {
-                        cp.forbid(initial);
-                        System.out.println("Using cp.");
-                        return initial;
-                    }
-                    break;
-                default:
-                    break;
-            }
+        SavingsAlgorithm savings = new SavingsAlgorithm(vrp);
+        initial = savings.run();
+        if (initial != null) {
+            System.out.println("Using savings.");
+            return initial;
         }
+
+        SweepAlgorithm sweep = new SweepAlgorithm(vrp);
+        initial = sweep.run();
+        if (initial != null) {
+            System.out.println("Using sweep.");
+            return initial;
+        }
+
+        CPSolutionFinder cp = new CPSolutionFinder(vrp);
+        initial = cp.run();
+        if (initial != null) {
+            cp.forbid(initial);
+            System.out.println("Using cp.");
+            return initial;
+        }
+
+        return null;
     }
 
     public double euclideanDistance(Node c1, Node c2) {

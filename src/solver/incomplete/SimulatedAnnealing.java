@@ -17,7 +17,7 @@ public class SimulatedAnnealing extends LocalSearcher {
     }
 
     public boolean step() throws Exception {
-        System.out.println("\nStep:");
+        // System.out.println("\nStep:");
         
         while (true) {
             Proposed move = proposeRandomMove();
@@ -41,7 +41,7 @@ public class SimulatedAnnealing extends LocalSearcher {
         int i = 0;
         boolean localMin;
         while (timer.getTime() < runtime && i < numIter) {
-            System.out.println(timer.getTime());
+            // System.out.println(timer.getTime());
             i++;
             step();
             if (currObjVal < bestObjVal) {

@@ -10,7 +10,8 @@ import java.nio.file.Paths;
 
 
 public class Main {
-    static int NUM_TRIES = 1;
+    static int TOTAL_RUNTIME = 269;
+    static int INTERNAL_RUNTIME = 30;
 
     public static void main(String[] args) throws Exception {
         if (args.length == 0) {
@@ -35,11 +36,13 @@ public class Main {
             solution = ipModel.solutionToString();
             ipModel.solutionToFile(filename);
         } else {
-            for (int i = 0; i < NUM_TRIES; i++) {
-                double temperature = 1.0;
-                double alpha = 0.95;
-                // BestImprovement solver = new BestImprovement(instance, 5);
-                SimulatedAnnealing solver = new SimulatedAnnealing(instance, 5, temperature, alpha);
+            Timer timer = new Timer();
+            timer.start();
+            while (timer.getTime() < TOTAL_RUNTIME) {
+                // double temperature = 0.1;
+                // double alpha = 0.99;
+                // SimulatedAnnealing solver = new SimulatedAnnealing(instance, INTERNAL_RUNTIME, temperature, alpha);
+                BestImprovement solver = new BestImprovement(instance, INTERNAL_RUNTIME);
                 double currObjVal = solver.solve();
                 if (currObjVal < objVal) {
                     objVal = currObjVal;

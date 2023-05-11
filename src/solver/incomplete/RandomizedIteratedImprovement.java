@@ -19,7 +19,7 @@ public class RandomizedIteratedImprovement extends BestImprovement {
 
     // Returns whether local maximum has been reached
     public boolean step() throws Exception {
-        System.out.println("\nStep:");
+        // System.out.println("\nStep:");
         // Maybe do a random step??
         if (generator.nextDouble() < this.clownFactor) {
             Proposed move = proposeRandomMove();
