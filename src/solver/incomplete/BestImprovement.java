@@ -86,6 +86,7 @@ public class BestImprovement extends LocalSearcher {
             case 1:
                 return new Pair(bestLocalSwap, 0);
         }
+        return null;
     }
 
     // Returns whether local maximum has been reached
