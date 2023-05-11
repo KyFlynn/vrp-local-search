@@ -138,6 +138,7 @@ public abstract class LocalSearcher {
                 case 2:
                     initial = cp.run();
                     if (initial != null) {
+                        cp.forbid(initial);
                         System.out.println("Using cp.");
                         return initial;
                     }
@@ -194,16 +195,16 @@ public abstract class LocalSearcher {
 
     // Returns the difference in objective value as a result
     public double relocate(Node node, Node newLocPrev) throws Exception {
-        System.out.println("Relocation -----");
-        System.out.println(String.format("Customer %d, vehicle %d -> Prev %d, vehicle %d",
-                node.customer, node.vehicle, newLocPrev.customer, newLocPrev.vehicle));
+        // System.out.println("Relocation -----");
+        // System.out.println(String.format("Customer %d, vehicle %d -> Prev %d, vehicle %d",
+        //         node.customer, node.vehicle, newLocPrev.customer, newLocPrev.vehicle));
         Route r1 = vehicleRoutes[node.vehicle];
         double removedDist = relocateRemovedDistance(node);
         r1.remove(node, removedDist);
         Route r2 = vehicleRoutes[newLocPrev.vehicle];
         double addedDist = relocateAddedDistance(node, newLocPrev);
         r2.add(node, newLocPrev, relocateAddedDistance(node, newLocPrev));
-        System.out.println("----------------");
+        // System.out.println("----------------");
         return addedDist - removedDist;
     }
 
@@ -225,24 +226,42 @@ public abstract class LocalSearcher {
         return new_n1 + new_n2 - old_n1 - old_n2;
     }
 
-    public double swappingCost_r1(Node n1, Node n2) {
-        double old_n1 = euclideanDistance(n1.prev, n1) + euclideanDistance(n1, n1.next);
-        double new_n2 = euclideanDistance(n1.prev, n2) + euclideanDistance(n2, n1.next);
-        return new_n2 - old_n1;
-    }
-
-    public double swappingCost_r2(Node n1, Node n2) {
-        double old_n2 = euclideanDistance(n2.prev, n2) + euclideanDistance(n2, n2.next);
-        double new_n1 = euclideanDistance(n2.prev, n1) + euclideanDistance(n1, n2.next);
-        return new_n1 - old_n2;
+    // Assumes order is n1 -> n2
+    public double swappingNeighborsCost(Node n1, Node n2) {
+        double old_dist = euclideanDistance(n1.prev, n1) + euclideanDistance(n2, n2.next);
+        double new_dist = euclideanDistance(n1.prev, n2) + euclideanDistance(n1, n2.next);
+        return new_dist - old_dist;
     }
 
     public double swap(Node n1, Node n2) throws Exception {
         Route r1 = vehicleRoutes[n1.vehicle];
-        Route r2 = vehicleRoutes[n2.vehicle];
+        // Neighboring nodes case
+        if (n1.next == n2) {
+            // !! Sets order to n1 -> n2 for all calls !!
+            double cost = swappingNeighborsCost(n1, n2);
+            r1.swapNeighbors(n1, n2, cost);
+            return cost;
+        } else if (n2.next == n1) {
+            // !! Sets order to n2 -> n1 for all calls !!
+            double cost = swappingNeighborsCost(n2, n1);
+            r1.swapNeighbors(n2, n1, cost);
+            return cost;
+        } else {
+            // Standard case
+            Route r2 = vehicleRoutes[n2.vehicle];
 
-        r1.swap(n1, n2, r2, swappingCost_r1(n1, n2), swappingCost_r2(n1, n2));
-        return swappingCost(n1, n2);
+            double cost = swappingCost(n1, n2);
+
+            Node n1_prev = n1.prev;
+            Node n2_prev = n2.prev;
+
+            r1.remove(n1, relocateRemovedDistance(n1));
+            r2.remove(n2, relocateRemovedDistance(n2));
+
+            r2.add(n1, n2_prev, relocateAddedDistance(n1, n2_prev));
+            r1.add(n2, n1_prev, relocateAddedDistance(n2, n1_prev));
+            return cost;
+        }
     }
 
     // ==================

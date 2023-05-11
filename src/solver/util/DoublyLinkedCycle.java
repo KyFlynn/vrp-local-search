@@ -36,8 +36,7 @@ public class DoublyLinkedCycle {
             depot.next = depot;
         }
     }
-
-    // TODO CHANGE VEHICLE
+    
     public void removeNode(Node n) throws Exception {
         if (n == depot) {
             throw new Exception("Attempt to remove depot from cycle.");
@@ -49,19 +48,18 @@ public class DoublyLinkedCycle {
         n.vehicle = -1;
     }
 
-    public void swapNodes(Node n1, Node n2) throws Exception {
+    // Assumes order is n1 -> n2
+    public void swapNeighboringNodes(Node n1, Node n2) throws Exception {
         if (n1 == depot || n2 == depot) {
-            throw new Exception("Attempt to swap depot from cycle.");
+            throw new Exception("Attempt to swap with depot.");
         }
-
-        int n1_vehicle = n1.vehicle;
-        int n2_vehicle = n2.vehicle;
-        int n1_customer = n1.customer;
-        int n2_customer = n2.customer;
-        n1.vehicle = n2_vehicle;
-        n2.vehicle = n1_vehicle;
-        n1.customer = n2_customer;
-        n2.customer = n1_customer;
+        // Neighboring nodes cases -> no vehicle changes
+        n2.prev = n1.prev;
+        n1.prev.next = n2;
+        n1.next = n2.next;
+        n2.next.prev = n1;
+        n2.next = n1;
+        n1.prev = n2;
     }
 
     public void addNode(Node n, Node prevNode) {
