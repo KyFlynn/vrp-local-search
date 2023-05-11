@@ -10,25 +10,20 @@ import java.util.ArrayList;
 public class CPSolutionFinder {
   VRPInstance vrp;
   IloCP cp;
+  IloIntVar[][] data;
   
   /**
    * Constructor + parser
    */
   public CPSolutionFinder(VRPInstance vrp) {
     this.vrp = vrp;
-  }
-
-  /**
-   * Build and run CP
-   */
-  public ArrayList<ArrayList<Integer>> run() {
     try {
       cp = new IloCP();
       cp.setParameter(IloCP.IntParam.Workers, 1);
       cp.setParameter(IloCP.DoubleParam.TimeLimit, 30);
 
       // Construct data array
-      IloIntVar[][] data = new IloIntVar[this.vrp.numVehicles][this.vrp.numCustomers-1];
+      data = new IloIntVar[this.vrp.numVehicles][this.vrp.numCustomers-1];
       for (int v = 0; v < this.vrp.numVehicles; v++) {
         for (int c = 0; c < this.vrp.numCustomers-1; c++) {
           data[v][c] = cp.intVar(0, 1);
@@ -59,6 +54,32 @@ public class CPSolutionFinder {
         cp.add(cp.le(cp.prod(served, demandOfCustomer), this.vrp.vehicleCapacity));
       }
 
+      // TODO: Symmetry break over the trucks
+    } catch (IloException e) {
+      System.out.println("Error: " + e);
+    }
+  }
+
+  /**
+   * Forbid a given solution
+   */
+  public void forbid(ArrayList<ArrayList<Integer>> solution) {
+    int truck = 0;
+    ArrayList<IloConstraint> constraints = new ArrayList<>();
+    for (ArrayList<Integer> route : solution) {
+      for (Integer stop : route) {
+        constraints.add(cp.eq(data[truck][stop-1], 1));
+      }
+      truck++;
+    }
+    cp.add(cp.not(cp.and(constraints.toArray(new IloConstraint[constraints.size()]))));
+  }
+
+  /**
+   * Build and run CP
+   */
+  public ArrayList<ArrayList<Integer>> run() {
+    try {
       // Solve and return output.
       cp.solve();
       ArrayList<ArrayList<Integer>> res = new ArrayList<>();

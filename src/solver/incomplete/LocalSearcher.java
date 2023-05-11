@@ -68,30 +68,66 @@ public abstract class LocalSearcher {
         assert checker.check(vrp, vehicleRoutes);
     }
 
+    public Node proposeRandomMove() {
+        System.out.println(String.format("Proposing random move\n"));
+
+        while (true) {
+            int choice = (int) Math.floor(generator.nextDouble() * 3);
+            switch (choice) {
+                case 0:
+                    // Relocation case
+                    Node n1 = customerNodes[(int) Math.floor(generator.nextDouble() * (customerNodes-1))+1];
+                    Node n2 = customerNodes[(int) Math.floor(generator.nextDouble() * (customerNodes-1))+1];
+                    if (checkRelocationFeasibility(n1, n2)) {
+                        double relocateCost = relocate(n1, n2);
+                        checker.check(vrp, vehicleRoutes);
+                    }
+                    break;
+                case 1:
+                    // Swap case
+                    Node n1 = customerNodes[(int) Math.floor(generator.nextDouble() * (customerNodes-1))+1];
+                    Node n2 = customerNodes[(int) Math.floor(generator.nextDouble() * (customerNodes-1))+1];
+                    if (checkSwappingFeasibility(n1, n2)) {
+                        double swapCost = swap(n1, n2);
+                        checker.check(vrp, vehicleRoutes);
+                    }
+                    break;
+            }
+        }
+    }
+
     public ArrayList<ArrayList<Integer>> initSolution() {
         SavingsAlgorithm savings = new SavingsAlgorithm(vrp);
-        ArrayList<ArrayList<Integer>> initial = savings.run();
-        if (initial != null) {
-            System.out.println("Using savings.");
-            return initial;
-        } else {
-            SweepAlgorithm sweep = new SweepAlgorithm(vrp);
-            initial = sweep.run();
-            if (initial != null) {
-                System.out.println("Using sweep.");
-                return initial;
-            } else {
-                CPSolutionFinder cp = new CPSolutionFinder(vrp);
-                initial = cp.run();
-                if (initial != null) {
-                    System.out.println("Using cp.");
-                    return initial;
-                } else {
-                    System.out.println("No initial solution found after savings, sweep, CP solution.");
-                    return null;
-                }
-            }
+        SweepAlgorithm sweep = new SweepAlgorithm(vrp);
+        CPSolutionFinder cp = new CPSolutionFinder(vrp);
 
+        while (true) {
+            int choice = (int) Math.floor(generator.nextDouble() * 3);
+            System.out.printf("Trying to find initial value using approach %d\n", choice);
+            switch (choice) {
+                case 0:
+                    ArrayList<ArrayList<Integer>> initial = savings.run();
+                    if (initial != null) {
+                        System.out.println("Using savings.");
+                        return initial;
+                    }
+                    break;
+                case 1:
+                    initial = sweep.run();
+                    if (initial != null) {
+                        System.out.println("Using sweep.");
+                        return initial;
+                    }
+                    break;
+                case 2:
+                    if (initial != null) {
+                        System.out.println("Using cp.");
+                        return initial;
+                    }
+                    break;
+                default:
+                    break;
+            }
         }
     }
 

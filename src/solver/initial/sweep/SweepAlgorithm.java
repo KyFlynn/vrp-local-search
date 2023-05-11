@@ -12,12 +12,13 @@ import java.util.HashMap;
 class Customer implements Comparable<Customer> {
   int id;
   double x, y, theta;
+  // Random generator = new Random();  // Set seed if you want one.
 
   public Customer(int id, double x, double y) {
     this.id = id;
     this.x = x;
     this.y = y;
-    this.theta = Math.atan2(y, x) + Math.PI;
+    this.theta = Math.atan2(y, x) + Math.PI + (Math.PI) * 2 * Math.random();
   }
 
   @Override

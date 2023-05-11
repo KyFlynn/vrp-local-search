@@ -7,7 +7,10 @@ import solver.util.Timer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+
 public class Main {
+    static int NUM_TRIES = 10;
+
     public static void main(String[] args) throws Exception {
         if (args.length == 0) {
             System.out.println("Usage: java Main <file>");
@@ -21,20 +24,25 @@ public class Main {
 
         Timer watch = new Timer();
         VRPInstance instance = new VRPInstance(input);
-        double objVal = -1.0;
-        String solution = "";
+        double objVal = Double.POSITIVE_INFINITY;
+        String solution;
         watch.start();
         // Complete algorithm if numCustomers low enough
         if (instance.numCustomers < 10) {
             IPModel ipModel = new IPModel(instance);
             objVal = ipModel.solve();
-            solution += ipModel.solutionToString();
+            solution = ipModel.solutionToString();
             ipModel.solutionToFile(filename);
         } else {
-            BestImprovement solver = new BestImprovement(instance, 5);
-            objVal = solver.solve();
-            solution += solver.bestSolutionToString();
-            solver.bestSolutionToFile(filename);
+            for (int i = 0; i < NUM_TRIES; i++) {
+                BestImprovement solver = new BestImprovement(instance, 5);
+                double currObjVal = solver.solve();
+                if (currObjVal < objVal) {
+                    objVal = currObjVal;
+                    solution = solver.bestSolutionToString();
+                    solver.bestSolutionToFile(filename);
+                }
+            }
         }
         watch.stop();
 
