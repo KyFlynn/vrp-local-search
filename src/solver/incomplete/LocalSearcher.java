@@ -225,18 +225,23 @@ public abstract class LocalSearcher {
         return new_n1 + new_n2 - old_n1 - old_n2;
     }
 
+    public double swappingCost_r1(Node n1, Node n2) {
+        double old_n1 = euclideanDistance(n1.prev, n1) + euclideanDistance(n1, n1.next);
+        double new_n2 = euclideanDistance(n1.prev, n2) + euclideanDistance(n2, n1.next);
+        return new_n2 - old_n1;
+    }
+
+    public double swappingCost_r2(Node n1, Node n2) {
+        double old_n2 = euclideanDistance(n2.prev, n2) + euclideanDistance(n2, n2.next);
+        double new_n1 = euclideanDistance(n2.prev, n1) + euclideanDistance(n1, n2.next);
+        return new_n1 - old_n2;
+    }
+
     public double swap(Node n1, Node n2) throws Exception {
         Route r1 = vehicleRoutes[n1.vehicle];
         Route r2 = vehicleRoutes[n2.vehicle];
 
-        Node n1_prev = n1.prev;
-        Node n2_prev = n2.prev;
-
-        r1.remove(n1, relocateRemovedDistance(n1));
-        r2.remove(n2, relocateRemovedDistance(n2));
-
-        r2.add(n1, n2_prev, relocateAddedDistance(n1, n2_prev));
-        r1.add(n2, n1_prev, relocateAddedDistance(n2, n1_prev));
+        r1.swap(n1, n2, r2, swappingCost_r1(n1, n2), swappingCost_r2(n1, n2));
         return swappingCost(n1, n2);
     }
 
