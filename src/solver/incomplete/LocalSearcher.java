@@ -82,7 +82,7 @@ public abstract class LocalSearcher {
         assert checker.check(vrp, vehicleRoutes);
     }
 
-    public Proposed proposeRandomMove() {
+    public Proposed proposeRandomMove() throws Exception {
         System.out.println(String.format("Proposing random move\n"));
 
         while (true) {
@@ -225,7 +225,7 @@ public abstract class LocalSearcher {
         return new_n1 + new_n2 - old_n1 - old_n2;
     }
 
-    public void swap(Node n1, Node n2) throws Exception {
+    public double swap(Node n1, Node n2) throws Exception {
         Route r1 = vehicleRoutes[n1.vehicle];
         Route r2 = vehicleRoutes[n2.vehicle];
 
@@ -237,6 +237,7 @@ public abstract class LocalSearcher {
 
         r2.add(n1, n2_prev, relocateAddedDistance(n1, n2_prev));
         r1.add(n2, n1_prev, relocateAddedDistance(n2, n1_prev));
+        return swappingCost(n1, n2);
     }
 
     // ==================
