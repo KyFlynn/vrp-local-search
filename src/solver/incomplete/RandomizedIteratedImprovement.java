@@ -1,9 +1,11 @@
 package solver.incomplete;
 
+
 import solver.VRPInstance;
 import solver.util.Node;
 import solver.util.Route;
 import solver.util.Timer;
+import solver.util.Pair;
 
 import java.io.FileNotFoundException;
 
@@ -33,18 +35,27 @@ public class RandomizedIteratedImprovement extends BestImprovement {
         // If we didn't take a random step, do a normal step
         Node[] nodeOrder = randomCustomerOrdering(customerNodes);
         Node choice = null;
-        Node newLocPrev = null;
+        Pair<Node, Integer> bestMove = null;
         for (Node n : nodeOrder) {
-            newLocPrev = findBestNeighborhoodMove(n);
-            if (newLocPrev != null) {
+            Pair<Node, Integer> move = searchNeighborhood(n);
+            if (move.x != null) {
+                bestMove = move;
                 choice = n;
                 break;
             }
         }
-        if (choice != null) {
-            double relocateCost = relocate(choice, newLocPrev);
+        double cost = 0;
+        if (bestMove.x != null) {
+            switch (bestMove.y) {
+                case 0:
+                    cost = relocate(choice, bestMove.x);
+                    break;
+                case 1:
+                    cost = swap(choice, bestMove.x);
+                    break;
+            }
             System.out.println(currObjVal);
-            currObjVal += relocateCost;
+            currObjVal += cost;
             for (Route r : vehicleRoutes) {
                 r.printRoute();
             }
