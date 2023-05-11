@@ -30,7 +30,8 @@ public class Main {
         String solution = "";
         watch.start();
         // Complete algorithm if numCustomers low enough
-        if (instance.numCustomers < 20) {
+        // TODO: Don't forget to turn on optimality by making below 20
+        if (instance.numCustomers < 10) {
             IPModel ipModel = new IPModel(instance);
             objVal = ipModel.solve();
             solution = ipModel.solutionToString();
