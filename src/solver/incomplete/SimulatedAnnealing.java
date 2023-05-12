@@ -21,12 +21,14 @@ public class SimulatedAnnealing extends LocalSearcher {
         
         while (true) {
             Proposed move = proposeRandomMove();
-            if (move.improving || generator.nextDouble() < this.temperature) {
+            if (move.delta <= 0 || generator.nextDouble() < (Math.exp(-move.delta / this.temperature))) {
+                double cost = 0.0;
                 if (move.move == 0) {
-                    relocate(move.n1, move.n2);
+                    cost = relocate(move.n1, move.n2);
                 } else if (move.move == 1) {
-                    swap(move.n1, move.n2);
+                    cost = swap(move.n1, move.n2);
                 }
+                currObjVal += cost;
                 checker.check(vrp, vehicleRoutes);
                 this.temperature *= this.alpha;
                 // System.out.println(this.temperature);

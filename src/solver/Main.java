@@ -3,6 +3,7 @@ package solver;
 import solver.complete.IPModel;
 import solver.incomplete.BestImprovement;
 import solver.incomplete.DisturbedBestImprovement;
+import solver.incomplete.RandomizedIteratedImprovement;
 import solver.incomplete.SimulatedAnnealing;
 import solver.util.Timer;
 
@@ -10,9 +11,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 
+// TODO: RUN WITH CHECKER BEFORE SUBMISSION
+
 public class Main {
-    static int TOTAL_RUNTIME = 300;
-    static int INTERNAL_RUNTIME = 295;
+    static int TOTAL_RUNTIME = 269;
+    static int INTERNAL_RUNTIME = 30;
 
     public static void main(String[] args) throws Exception {
         if (args.length == 0) {
@@ -31,8 +34,6 @@ public class Main {
         String solution = "";
         watch.start();
         // Complete algorithm if numCustomers low enough
-        // TODO: Don't forget to turn on optimality by making below 20
-        // TODO: RUN WITH CHECKER BEFORE SUBMISSION
         if (instance.numCustomers < 20) {
             IPModel ipModel = new IPModel(instance);
             objVal = ipModel.solve();
@@ -42,10 +43,9 @@ public class Main {
             Timer timer = new Timer();
             timer.start();
             // while (timer.getTime() < TOTAL_RUNTIME) {
-                // double temperature = 0.1;
-                // double alpha = 0.99;
-                // SimulatedAnnealing solver = new SimulatedAnnealing(instance, INTERNAL_RUNTIME, temperature, alpha);
+                // SimulatedAnnealing solver = new SimulatedAnnealing(instance, INTERNAL_RUNTIME, 1.0, 0.999999);
                 // BestImprovement solver = new BestImprovement(instance, INTERNAL_RUNTIME);
+                // RandomizedIteratedImprovement solver = new RandomizedIteratedImprovement(instance, INTERNAL_RUNTIME);
                 DisturbedBestImprovement solver = new DisturbedBestImprovement(instance, INTERNAL_RUNTIME);
                 double currObjVal = solver.solve();
                 if (currObjVal < objVal) {

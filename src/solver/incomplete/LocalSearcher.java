@@ -83,7 +83,7 @@ public abstract class LocalSearcher {
 
                     if (checkRelocationFeasibility(n2.vehicle, n1)) {
                         double relocateCost = relocationCost(n1, n2);
-                        return new Proposed(n1, n2, 0, relocateCost <= 0.0);
+                        return new Proposed(n1, n2, 0, relocateCost);
                     }
                     break;
                 case 1:
@@ -98,14 +98,14 @@ public abstract class LocalSearcher {
                         if (n1.next == n2) {
                             // !! Sets order to n1 -> n2 for all calls !!
                             cost = swappingNeighborsCost(n1, n2);
-                            return new Proposed(n1, n2, 1, cost <= 0.0);
+                            return new Proposed(n1, n2, 1, cost);
                         } else if (n2.next == n1) {
                             cost = swappingNeighborsCost(n2, n1);
-                            return new Proposed(n2, n1, 1, cost <= 0.0);
+                            return new Proposed(n2, n1, 1, cost);
                         } else {
                             // Standard case
                             cost = swappingCost(n1, n2);
-                            return new Proposed(n1, n2, 1, cost <= 0.0);
+                            return new Proposed(n1, n2, 1, cost);
                         }
                     }
                     break;
@@ -326,12 +326,12 @@ public abstract class LocalSearcher {
 class Proposed {
     Node n1, n2;
     int move; // 0 for relocation, 1 for swap
-    boolean improving;
+    double delta;
 
-    public Proposed(Node n1, Node n2, int move, boolean improving) {
+    public Proposed(Node n1, Node n2, int move, double delta) {
         this.n1 = n1;
         this.n2 = n2;
         this.move = move;
-        this.improving = improving;
+        this.delta = delta;
     };
 }
