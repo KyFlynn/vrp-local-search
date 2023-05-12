@@ -14,20 +14,6 @@ import java.util.ArrayList;
 import java.util.Random;
 
 
-class Proposed {
-    Node n1, n2;
-    int move; // 0 for relocation, 1 for swap
-    boolean improving;
-
-    public Proposed(Node n1, Node n2, int move, boolean improving) {
-        this.n1 = n1;
-        this.n2 = n2;
-        this.move = move;
-        this.improving = improving;
-    };
-}
-
-
 public abstract class LocalSearcher {
 
     VRPInstance vrp;
@@ -82,12 +68,12 @@ public abstract class LocalSearcher {
         assert checker.check(vrp, vehicleRoutes);
     }
 
-    public Proposed proposeRandomMove() throws Exception {
+    public Proposed proposeRandomMove() {
         // System.out.println(String.format("Proposing random move\n"));
 
         while (true) {
             Node n1, n2;
-            int choice = (int) Math.floor(generator.nextDouble() * 3);
+            int choice = (int) Math.floor(generator.nextDouble() * 2);
             switch (choice) {
                 case 0:
                     // Relocation case
@@ -107,7 +93,7 @@ public abstract class LocalSearcher {
                     if (n1 == n2) break;
 
                     if (checkSwappingFeasibility(n1.vehicle, n2.vehicle, n1, n2)) {
-                        double cost = 0;
+                        double cost;
                         // Neighbors cases
                         if (n1.next == n2) {
                             // !! Sets order to n1 -> n2 for all calls !!
@@ -122,6 +108,9 @@ public abstract class LocalSearcher {
                             return new Proposed(n1, n2, 1, cost <= 0.0);
                         }
                     }
+                    break;
+                default:
+                    System.out.println("Default case reached.");
                     break;
             }
         }
@@ -331,4 +320,18 @@ public abstract class LocalSearcher {
         out.close();
     }
 
+}
+
+
+class Proposed {
+    Node n1, n2;
+    int move; // 0 for relocation, 1 for swap
+    boolean improving;
+
+    public Proposed(Node n1, Node n2, int move, boolean improving) {
+        this.n1 = n1;
+        this.n2 = n2;
+        this.move = move;
+        this.improving = improving;
+    };
 }

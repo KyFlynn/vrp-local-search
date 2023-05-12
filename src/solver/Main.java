@@ -2,6 +2,7 @@ package solver;
 
 import solver.complete.IPModel;
 import solver.incomplete.BestImprovement;
+import solver.incomplete.DisturbedBestImprovement;
 import solver.incomplete.SimulatedAnnealing;
 import solver.util.Timer;
 
@@ -10,8 +11,8 @@ import java.nio.file.Paths;
 
 
 public class Main {
-    static int TOTAL_RUNTIME = 269;
-    static int INTERNAL_RUNTIME = 30;
+    static int TOTAL_RUNTIME = 300;
+    static int INTERNAL_RUNTIME = 295;
 
     public static void main(String[] args) throws Exception {
         if (args.length == 0) {
@@ -31,7 +32,8 @@ public class Main {
         watch.start();
         // Complete algorithm if numCustomers low enough
         // TODO: Don't forget to turn on optimality by making below 20
-        if (instance.numCustomers < 10) {
+        // TODO: RUN WITH CHECKER BEFORE SUBMISSION
+        if (instance.numCustomers < 20) {
             IPModel ipModel = new IPModel(instance);
             objVal = ipModel.solve();
             solution = ipModel.solutionToString();
@@ -39,18 +41,19 @@ public class Main {
         } else {
             Timer timer = new Timer();
             timer.start();
-            while (timer.getTime() < TOTAL_RUNTIME) {
+            // while (timer.getTime() < TOTAL_RUNTIME) {
                 // double temperature = 0.1;
                 // double alpha = 0.99;
                 // SimulatedAnnealing solver = new SimulatedAnnealing(instance, INTERNAL_RUNTIME, temperature, alpha);
-                BestImprovement solver = new BestImprovement(instance, INTERNAL_RUNTIME);
+                // BestImprovement solver = new BestImprovement(instance, INTERNAL_RUNTIME);
+                DisturbedBestImprovement solver = new DisturbedBestImprovement(instance, INTERNAL_RUNTIME);
                 double currObjVal = solver.solve();
                 if (currObjVal < objVal) {
                     objVal = currObjVal;
                     solution = solver.bestSolutionToString();
                     solver.bestSolutionToFile(filename);
                 }
-            }
+            // }
         }
         watch.stop();
 

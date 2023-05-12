@@ -7,6 +7,8 @@ import ilog.concert.IloNumExpr;
 import ilog.concert.IloNumVar;
 import ilog.concert.IloNumVarType;
 import ilog.cplex.IloCplex;
+import ilog.cplex.IloCplex.Callback.Context;
+// .Callback.Context
 import solver.util.Node;
 import solver.util.Route;
 
@@ -31,6 +33,7 @@ public class IPModel {
        // this.cp.setOut(out);
         this.vrp = vrp;
         this.initIPModel();
+        cp.getCplexStatus()
     }
 
     // Initialize model
@@ -279,10 +282,11 @@ public class IPModel {
                                                 vehicleArcChoice[veh][subtourCustomers.get(c)][subtourCustomers.get(c-1)]);
                                     }
                                 }
-                                cp.addLe(
+                                cp.rejectCandidate();
+                                cp.addLazyConstraint(cp.addLe(
                                     cp.sum(
                                         subtourEdges.toArray(new IloNumExpr[subtourEdges.size()])),
-                                        (subtourEdges.size() / (2 * vrp.numVehicles)) - 1);
+                                        (subtourEdges.size() / (2 * vrp.numVehicles)) - 1));
                                 subtoursExist = true;
                             }
                         }

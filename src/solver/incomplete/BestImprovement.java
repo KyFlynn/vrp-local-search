@@ -18,7 +18,7 @@ public class BestImprovement extends LocalSearcher {
     public Pair<Node, Double> findBestRelocation(Node n) {
         // System.out.println(String.format("Searching relocations for vehicle %d, customer %d", n.vehicle, n.customer));
         Node bestRelocatePrev = null;
-        double bestCost = 0;
+        double bestCost = -1 * 10e-10;
         // Relocation neighborhood search
         for (int v = 0; v < vrp.numVehicles; v++) {
             // Check if relocating customer to this vehicle is feasible.
@@ -34,7 +34,7 @@ public class BestImprovement extends LocalSearcher {
                     }
                     double cost = relocationCost(n, curr);
                     // System.out.println(String.format("Relocation: Vehicle %d, PrevNode: %d, Cost: %.2f", v, curr.customer, cost));
-                    if (cost <= bestCost) {
+                    if (cost < bestCost) {
                         bestRelocatePrev = curr;
                         bestCost = cost;
                     }
@@ -48,7 +48,7 @@ public class BestImprovement extends LocalSearcher {
     public Pair<Node, Double> findBestSwap(Node n) {
         // System.out.println(String.format("Searching swaps for vehicle %d, customer %d", n.vehicle, n.customer));
         Node bestSwapNode = null;
-        double bestCost = 0;
+        double bestCost = -1 * 10e-10;
         // Swapping neighborhood search
         for (int v = 0; v < vrp.numVehicles; v++) {
             Node depot = vehicleRoutes[v].routeCycle.depot;
@@ -63,7 +63,7 @@ public class BestImprovement extends LocalSearcher {
                 }
                 // Check if feasible.
                 if (checkSwappingFeasibility(n.vehicle, curr.vehicle, n, curr)) {
-                    double cost = 0;
+                    double cost;
                     // Neighbors cases
                     if (n.next == curr) {
                         // !! Sets order to n1 -> n2 for all calls !!
@@ -75,7 +75,7 @@ public class BestImprovement extends LocalSearcher {
                         cost = swappingCost(n, curr);
                     }
                     // System.out.println(String.format("Swapping: Vehicle %d, Node: %d, Cost: %.2f", v, curr.customer, cost));
-                    if (cost <= bestCost) {
+                    if (cost < bestCost) {
                         bestSwapNode = curr;
                         bestCost = cost;
                     }
@@ -83,7 +83,6 @@ public class BestImprovement extends LocalSearcher {
                 curr = curr.next;
             }
         }
-        // return new Pair<>(null, 0.0);
         return new Pair<>(bestSwapNode, bestCost);
     }
 
@@ -96,11 +95,13 @@ public class BestImprovement extends LocalSearcher {
                 return new Pair<>(bestLocalRelocate.x, 0);
             case 1:
                 return new Pair<>(bestLocalSwap.x, 1);
+            default:
+                System.out.println("Default case reached.");
+                return null;
         }
-        return null;
     }
 
-    public double makeMove(Node n, Pair<Node, Integer> move) throws Exception {
+    public void makeMove(Node n, Pair<Node, Integer> move) throws Exception {
         double cost = 0;
         switch (move.y) {
             case 0:
@@ -113,11 +114,15 @@ public class BestImprovement extends LocalSearcher {
                 //         n.customer, move.x.vehicle, move.x.customer));
                 cost = swap(n, move.x);
                 break;
+            default:
+                System.out.println("Default case reached.");
+                break;
         }
-        return cost;
+        // Update objective value
+        currObjVal += cost;
     }
 
-    // Returns whether local maximum has been reached
+    // Returns whether local minimum has been reached
     public boolean step() throws Exception {
         // System.out.println("\nStep:");
         Node[] nodeOrder = randomCustomerOrdering(customerNodes);
@@ -132,13 +137,14 @@ public class BestImprovement extends LocalSearcher {
             }
         }
         if (bestMove != null) {
-            double cost = makeMove(choice, bestMove);
-            currObjVal += cost;
+            makeMove(choice, bestMove);
             // System.out.println(currObjVal);
             // for (Route r : vehicleRoutes) {
             //     r.printRoute();
             // }
-            return !(checker.check(vrp, vehicleRoutes));
+            // TODO: Remember to turn on checker below before submission
+            // return !(checker.check(vrp, vehicleRoutes));
+            return false;
         }
         return true;
     }
@@ -146,10 +152,8 @@ public class BestImprovement extends LocalSearcher {
     public double solve() throws Exception {
         Timer timer = new Timer();
         timer.start();
-        int i = 0;
         boolean localMin;
-        while (timer.getTime() < runtime && i < numIter) {
-            i++;
+        while (timer.getTime() < runtime) {
             localMin = step();
             if (currObjVal < bestObjVal) {
                 bestObjVal = currObjVal;
@@ -157,9 +161,9 @@ public class BestImprovement extends LocalSearcher {
             }
             if (localMin) {
                 System.out.println("Local minimum reached.");
-                for (Route r : vehicleRoutes) {
-                    r.printRoute();
-                }
+                // for (Route r : vehicleRoutes) {
+                //     r.printRoute();
+                // }
                 break;
             }
         }
