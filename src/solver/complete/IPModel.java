@@ -33,7 +33,6 @@ public class IPModel {
        // this.cp.setOut(out);
         this.vrp = vrp;
         this.initIPModel();
-        cp.getCplexStatus()
     }
 
     // Initialize model
@@ -282,11 +281,10 @@ public class IPModel {
                                                 vehicleArcChoice[veh][subtourCustomers.get(c)][subtourCustomers.get(c-1)]);
                                     }
                                 }
-                                cp.rejectCandidate();
-                                cp.addLazyConstraint(cp.addLe(
+                                cp.addLe(
                                     cp.sum(
                                         subtourEdges.toArray(new IloNumExpr[subtourEdges.size()])),
-                                        (subtourEdges.size() / (2 * vrp.numVehicles)) - 1));
+                                        (subtourEdges.size() / (2 * vrp.numVehicles)) - 1);
                                 subtoursExist = true;
                             }
                         }
