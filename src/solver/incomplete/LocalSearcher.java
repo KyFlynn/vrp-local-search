@@ -17,7 +17,7 @@ public abstract class LocalSearcher {
 
     VRPInstance vrp;
     public double runtime;
-    Random generator = new Random();  // TODO: Find seed
+    Random generator = new Random(500171420);
     Node[] customerNodes;
     Route[] vehicleRoutes;
     double currObjVal;
