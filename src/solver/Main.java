@@ -47,8 +47,8 @@ public class Main {
             // ipModelLazy.solutionToFile(filename);
         } else {
             // DisturbedBestImprovement solver = new DisturbedBestImprovement(instance);
-            // LocalExplorationDisturbedBestImprovement solver = new LocalExplorationDisturbedBestImprovement(instance);
-            SimulatedAnnealing solver = new SimulatedAnnealing(instance, 1.0, 0.999999);
+            LocalExplorationDisturbedBestImprovement solver = new LocalExplorationDisturbedBestImprovement(instance);
+            // SimulatedAnnealing solver = new SimulatedAnnealing(instance, 1.0, 0.999999);
             while (watch.getTime() < TOTAL_RUNTIME) {
                 solver.setRuntime(Math.min(INTERNAL_RUNTIME, TOTAL_RUNTIME - (int) watch.getTime()));
                 double currObjVal = solver.solve();
@@ -84,7 +84,7 @@ public class Main {
     // SOLUTION UTILS
 
     public static String solutionToString(Route[] routes) {
-        String solution = "";
+        String solution = "0 ";
         for (Route r : routes) {
             solution += "0 ";
             Node curr = r.routeCycle.depot.next;
