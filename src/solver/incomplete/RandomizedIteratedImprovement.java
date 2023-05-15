@@ -45,6 +45,8 @@ public class RandomizedIteratedImprovement extends BestImprovement {
             }
         }
         double cost = 0.0;
+        if (bestMove == null) return true;
+
         if (bestMove.x != null) {
             switch (bestMove.y) {
                 case 0:
