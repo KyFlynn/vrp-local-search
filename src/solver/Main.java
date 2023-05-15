@@ -14,8 +14,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class Main {
-    static int TOTAL_RUNTIME = 20;
-    static int INTERNAL_RUNTIME = 20;
+    static int TOTAL_RUNTIME = 285;
+    static int INTERNAL_RUNTIME = 285;
 
     public static void main(String[] args) throws Exception {
         if (args.length == 0) {
