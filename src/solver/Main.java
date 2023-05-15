@@ -46,17 +46,18 @@ public class Main {
             // solution = ipModelLazy.solutionToString();
             // ipModelLazy.solutionToFile(filename);
         } else {
+            // DisturbedBestImprovement solver = new DisturbedBestImprovement(instance);
+            // LocalExplorationDisturbedBestImprovement solver = new LocalExplorationDisturbedBestImprovement(instance);
+            SimulatedAnnealing solver = new SimulatedAnnealing(instance, 1.0, 0.999999);
             while (watch.getTime() < TOTAL_RUNTIME) {
-                // RandomizedIteratedImprovement solver = new RandomizedIteratedImprovement(instance, 0.2);
-                // DisturbedBestImprovement solver = new DisturbedBestImprovement(instance);
-                // LocalExplorationDisturbedBestImprovement solver = new LocalExplorationDisturbedBestImprovement(instance);
-                // SimulatedAnnealing solver = new SimulatedAnnealing(instance, 1.0, 0.999999);
                 solver.setRuntime(Math.min(INTERNAL_RUNTIME, TOTAL_RUNTIME - (int) watch.getTime()));
                 double currObjVal = solver.solve();
                 if (currObjVal < bestObjVal) {
                     bestObjVal = currObjVal;
                     bestRoutes = solver.bestRoutes;
                 }
+                System.out.println(bestRoutes);
+                System.out.println(bestObjVal);
             }
         }
         watch.stop();

@@ -85,7 +85,8 @@ public class CPSolutionFinder {
   public ArrayList<ArrayList<Integer>> run() {
     try {
       // Solve and return output.
-      cp.solve();
+      boolean solved = cp.solve();
+      if (!solved) return null;
       ArrayList<ArrayList<Integer>> res = new ArrayList<>();
       for (int v = 0; v < this.vrp.numVehicles; v++) {
         ArrayList<Integer> curr = new ArrayList<>();

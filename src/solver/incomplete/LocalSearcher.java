@@ -26,15 +26,27 @@ public abstract class LocalSearcher {
     Checker checker = new Checker();
     int numIter = Hyperparameters.numIter;
 
+    SavingsAlgorithm savings;
+    SweepAlgorithm sweep;
+    CPSolutionFinder cp;
+
     public LocalSearcher(VRPInstance instance) {
         vrp = instance;
         customerNodes = new Node[vrp.numCustomers - 1];
         for (int i = 0; i < vrp.numCustomers - 1; i++) {
             customerNodes[i] = new Node(null, i + 1, -1, null);
         }
+        this.savings = new SavingsAlgorithm(vrp);
+        this.sweep = new SweepAlgorithm(vrp);
+        this.cp = new CPSolutionFinder(vrp);
+    }
+
+    public void setRuntime(double time) {
+        runtime = time;
+    }
+
+    public void setup() {
         ArrayList<ArrayList<Integer>> initialRoutes = initSolution();
-        // printInitialRoutes(initialRoutes);
-        // initialRoutesToFile(initialRoutes);
         vehicleRoutes = new Route[vrp.numVehicles];
         initRoutes(initialRoutes);
         currObjVal = 0;
@@ -43,10 +55,6 @@ public abstract class LocalSearcher {
         }
         bestRoutes = vehicleRoutes;
         bestObjVal = currObjVal;
-    }
-
-    public void setRuntime(double time) {
-        runtime = time;
     }
 
     // Step and solve abstracted for different local search types
@@ -122,22 +130,19 @@ public abstract class LocalSearcher {
         ArrayList<ArrayList<Integer>> initial;
         // System.out.printf("Trying to find initial value\n", choice);
 
-        SavingsAlgorithm savings = new SavingsAlgorithm(vrp);
-        initial = savings.run();
+        initial = this.savings.run();
         if (initial != null) {
             System.out.println("Using savings.");
             return initial;
         }
 
-        SweepAlgorithm sweep = new SweepAlgorithm(vrp);
-        initial = sweep.run();
+        initial = this.sweep.run();
         if (initial != null) {
             System.out.println("Using sweep.");
             return initial;
         }
 
-        CPSolutionFinder cp = new CPSolutionFinder(vrp);
-        initial = cp.run();
+        initial = this.cp.run();
         if (initial != null) {
             cp.forbid(initial);
             System.out.println("Using cp.");

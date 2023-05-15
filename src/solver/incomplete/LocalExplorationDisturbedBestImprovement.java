@@ -71,6 +71,8 @@ public class LocalExplorationDisturbedBestImprovement extends DisturbedBestImpro
     }
 
     public double solve() throws Exception {
+        setup();
+        
         timer.start();
         // Continuously find and disturb local minima using each recorded minimum's exploration parameters
         boolean localMinReached;

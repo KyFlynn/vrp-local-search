@@ -79,6 +79,8 @@ public class DisturbedBestImprovement extends BestImprovement {
     }
 
     public double solve() throws Exception {
+        setup();
+        
         timer.start();
         boolean localMinReached;
         while (timer.getTime() < runtime) {

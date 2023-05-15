@@ -38,6 +38,8 @@ public class SimulatedAnnealing extends LocalSearcher {
     }
 
     public double solve() throws Exception {
+        setup();
+        
         Timer timer = new Timer();
         timer.start();
         int i = 0;

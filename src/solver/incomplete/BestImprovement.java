@@ -150,6 +150,8 @@ public class BestImprovement extends LocalSearcher {
     }
 
     public double solve() throws Exception {
+        setup();
+
         Timer timer = new Timer();
         timer.start();
         boolean localMin;
