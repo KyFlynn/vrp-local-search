@@ -11,7 +11,7 @@ import java.io.FileNotFoundException;
 public class BestImprovement extends LocalSearcher {
 
 
-    public BestImprovement(VRPInstance instance) {
+    public BestImprovement(VRPInstance instance) throws FileNotFoundException {
         super(instance);
     }
 

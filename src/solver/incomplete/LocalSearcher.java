@@ -16,8 +16,8 @@ import java.util.Random;
 public abstract class LocalSearcher {
 
     VRPInstance vrp;
-    int runtime;
-    Random generator = new Random();  // Set seed if you want one.
+    public double runtime;
+    Random generator = new Random();  // TODO: Find seed
     Node[] customerNodes;
     Route[] vehicleRoutes;
     double currObjVal;
@@ -26,15 +26,14 @@ public abstract class LocalSearcher {
     Checker checker = new Checker();
     int numIter = Hyperparameters.numIter;
 
-    public LocalSearcher(VRPInstance instance, int solveTime) throws FileNotFoundException {
-        runtime = solveTime;
+    public LocalSearcher(VRPInstance instance) {
         vrp = instance;
         customerNodes = new Node[vrp.numCustomers - 1];
         for (int i = 0; i < vrp.numCustomers - 1; i++) {
             customerNodes[i] = new Node(null, i + 1, -1, null);
         }
         ArrayList<ArrayList<Integer>> initialRoutes = initSolution();
-        printInitialRoutes(initialRoutes);
+        // printInitialRoutes(initialRoutes);
         // initialRoutesToFile(initialRoutes);
         vehicleRoutes = new Route[vrp.numVehicles];
         initRoutes(initialRoutes);
@@ -44,6 +43,10 @@ public abstract class LocalSearcher {
         }
         bestRoutes = vehicleRoutes;
         bestObjVal = currObjVal;
+    }
+
+    public void setRuntime(double time) {
+        runtime = time;
     }
 
     // Step and solve abstracted for different local search types
@@ -59,11 +62,11 @@ public abstract class LocalSearcher {
         for (int v = initialRoutes.size(); v < vrp.numVehicles; v++) {
             vehicleRoutes[v] = new Route(vrp, v, customerNodes, null);
         }
-        System.out.println("The initial routes are:");
-        for (Route r : vehicleRoutes) {
-            r.printRoute();
-        }
-        System.out.println("");
+        // System.out.println("The initial routes are:");
+        // for (Route r : vehicleRoutes) {
+        //     r.printRoute();
+        // }
+        // System.out.println("");
         assert checker.check(vrp, vehicleRoutes);
     }
 

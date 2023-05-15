@@ -16,7 +16,7 @@ public class DisturbedBestImprovement extends BestImprovement {
     double prevLocalMinVal;
     Timer timer = new Timer();
 
-    public DisturbedBestImprovement(VRPInstance instance) {
+    public DisturbedBestImprovement(VRPInstance instance) throws FileNotFoundException {
         super(instance);
         disturbGrowthFact = 1.1 + (instance.numCustomers / numCustomerGrowthFactor);
     }

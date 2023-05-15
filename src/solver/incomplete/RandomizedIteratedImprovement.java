@@ -56,11 +56,11 @@ public class RandomizedIteratedImprovement extends BestImprovement {
                     cost = swap(choice, bestMove.x);
                     break;
             }
-            System.out.println(currObjVal);
-            currObjVal += cost;
-            for (Route r : vehicleRoutes) {
-                r.printRoute();
-            }
+            // System.out.println(currObjVal);
+            // currObjVal += cost;
+            // for (Route r : vehicleRoutes) {
+            //     r.printRoute();
+            // }
             return !(checker.check(vrp, vehicleRoutes));
         }
         return false;

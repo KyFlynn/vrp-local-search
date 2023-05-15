@@ -14,8 +14,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class Main {
-    static int TOTAL_RUNTIME = 285;
-    static int INTERNAL_RUNTIME = 285;
+    static int TOTAL_RUNTIME = 20;
+    static int INTERNAL_RUNTIME = 20;
 
     public static void main(String[] args) throws Exception {
         if (args.length == 0) {
@@ -47,10 +47,9 @@ public class Main {
             // ipModelLazy.solutionToFile(filename);
         } else {
             while (watch.getTime() < TOTAL_RUNTIME) {
-                // BestImprovement solver = new BestImprovement(instance);
-                // RandomizedIteratedImprovement solver = new RandomizedIteratedImprovement(instance);
+                // RandomizedIteratedImprovement solver = new RandomizedIteratedImprovement(instance, 0.2);
                 // DisturbedBestImprovement solver = new DisturbedBestImprovement(instance);
-                LocalExplorationDisturbedBestImprovement solver = new LocalExplorationDisturbedBestImprovement(instance);
+                // LocalExplorationDisturbedBestImprovement solver = new LocalExplorationDisturbedBestImprovement(instance);
                 // SimulatedAnnealing solver = new SimulatedAnnealing(instance, 1.0, 0.999999);
                 solver.setRuntime(Math.min(INTERNAL_RUNTIME, TOTAL_RUNTIME - (int) watch.getTime()));
                 double currObjVal = solver.solve();
