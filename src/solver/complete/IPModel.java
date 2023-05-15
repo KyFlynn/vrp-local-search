@@ -320,11 +320,11 @@ public class IPModel {
 
     //  Extracts the solution into the desired format
     public String solutionToString() throws IloException {
-        String s = "1 ";
+        String s = "1";
         // Go through each vehicle and see what its tour was
         int[][][] M = getVariableValues();
         for (int v = 0; v < vrp.numVehicles; v++) {
-            String row = "0 ";
+            String row = " 0 ";
             int curr = 0;
             // Check if an exit exists from the depot.
             for (int i = 1; i < vrp.numCustomers; i++) {
