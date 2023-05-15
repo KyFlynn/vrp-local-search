@@ -9,12 +9,16 @@ import java.io.FileNotFoundException;
 
 public class DisturbedBestImprovement extends BestImprovement {
 
-    int numDisturbances = 2;
+    int initNumDisturbances = 4;
+    int maxNumDisturbances = 50000;
+    int numCustomerGrowthFactor = 400;
+    double disturbGrowthFact;
     double prevLocalMinVal;
     Timer timer = new Timer();
 
-    public DisturbedBestImprovement(VRPInstance instance, int solveTime) throws FileNotFoundException {
-        super(instance, solveTime);
+    public DisturbedBestImprovement(VRPInstance instance) {
+        super(instance);
+        disturbGrowthFact = 1.1 + (instance.numCustomers / numCustomerGrowthFactor);
     }
 
     // Returns whether local minimum has been reached
@@ -32,18 +36,16 @@ public class DisturbedBestImprovement extends BestImprovement {
         }
         if (bestMove != null) {
             makeMove(choice, bestMove);
-            // TODO: Remember to turn on checker below before submission
-            // return !(checker.check(vrp, vehicleRoutes));
             return false;
         }
         return true;
     }
 
-    public void updateDisturbanceNumber() {
-        numDisturbances *= 2;
+    public int updateDisturbanceNumber(int numDisturbances) {
+        return (int) Math.min(Math.ceil(numDisturbances * disturbGrowthFact), maxNumDisturbances);
     }
 
-    public void applyDisturbances() throws Exception {
+    public void applyDisturbances(int numDisturbances) throws Exception {
         // Applying numDisturbances disturbances to current solution
         for (int i = 0; i < numDisturbances; i++) {
             Proposed randomMove = proposeRandomMove();
@@ -52,13 +54,13 @@ public class DisturbedBestImprovement extends BestImprovement {
         }
     }
 
-    public void disturb() throws Exception {
+    public void disturb(int numDisturbances) throws Exception {
         // System.out.println(String.format("Local min reached at %.4f. Restarting with %d disturbances.",
         //         currObjVal, numDisturbances));
         // Update previous local min value
         prevLocalMinVal = currObjVal;
         do {
-            applyDisturbances();
+            applyDisturbances(numDisturbances);
             // Reach local minimum again
             boolean localMin = false;
             while (!localMin & timer.getTime() < runtime) {
@@ -71,24 +73,24 @@ public class DisturbedBestImprovement extends BestImprovement {
             }
             // Check if same as last local minimum -> not enough disturbances
             if (currObjVal == prevLocalMinVal) {
-                updateDisturbanceNumber();
+                numDisturbances = updateDisturbanceNumber(numDisturbances);
             }
         } while (currObjVal == prevLocalMinVal & timer.getTime() < runtime);
     }
 
     public double solve() throws Exception {
         timer.start();
-        boolean localMin;
+        boolean localMinReached;
         while (timer.getTime() < runtime) {
-            localMin = step();
+            localMinReached = step();
             // Update best
             if (currObjVal < bestObjVal) {
                 bestObjVal = currObjVal;
                 bestRoutes = vehicleRoutes;
             }
             // If at local min, begin disturbance
-            if (localMin) {
-                disturb();
+            if (localMinReached) {
+                disturb(initNumDisturbances);
             }
         }
         return bestObjVal;

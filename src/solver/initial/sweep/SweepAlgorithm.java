@@ -7,18 +7,19 @@ import java.lang.Math;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Random;
 
 // Edge class 
 class Customer implements Comparable<Customer> {
   int id;
   double x, y, theta;
-  // Random generator = new Random();  // Set seed if you want one.
+  Random generator = new Random(1234567890);  // Set seed if you want one.
 
   public Customer(int id, double x, double y) {
     this.id = id;
     this.x = x;
     this.y = y;
-    this.theta = Math.atan2(y, x) + Math.PI + (Math.PI) * 2 * Math.random();
+    this.theta = Math.atan2(y, x) + Math.PI + (Math.PI) * 2 * generator.nextDouble();
   }
 
   @Override

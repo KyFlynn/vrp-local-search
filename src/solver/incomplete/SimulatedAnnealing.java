@@ -10,8 +10,8 @@ import java.io.FileNotFoundException;
 public class SimulatedAnnealing extends LocalSearcher {
     double temperature, alpha;
 
-    public SimulatedAnnealing(VRPInstance instance, int solveTime, double temperature, double alpha) throws FileNotFoundException {
-        super(instance, solveTime);
+    public SimulatedAnnealing(VRPInstance instance, double temperature, double alpha) throws FileNotFoundException {
+        super(instance);
         this.temperature = temperature;
         this.alpha = alpha;
     }

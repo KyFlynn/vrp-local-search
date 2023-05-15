@@ -12,8 +12,8 @@ import java.io.FileNotFoundException;
 public class RandomizedIteratedImprovement extends BestImprovement {
     double clownFactor;
 
-    public RandomizedIteratedImprovement(VRPInstance instance, int solveTime, double clownFactor) throws FileNotFoundException {
-        super(instance, solveTime);
+    public RandomizedIteratedImprovement(VRPInstance instance, double clownFactor) throws FileNotFoundException {
+        super(instance);
         this.clownFactor = clownFactor;
     }
 

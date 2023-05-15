@@ -11,8 +11,8 @@ import java.io.FileNotFoundException;
 public class BestImprovement extends LocalSearcher {
 
 
-    public BestImprovement(VRPInstance instance, int solveTime) throws FileNotFoundException {
-        super(instance, solveTime);
+    public BestImprovement(VRPInstance instance) {
+        super(instance);
     }
 
     public Pair<Node, Double> findBestRelocation(Node n) {

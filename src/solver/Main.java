@@ -1,21 +1,21 @@
 package solver;
 
 import solver.complete.IPModel;
-import solver.incomplete.BestImprovement;
-import solver.incomplete.DisturbedBestImprovement;
-import solver.incomplete.RandomizedIteratedImprovement;
-import solver.incomplete.SimulatedAnnealing;
+import solver.complete.IPModelLazy;
+import solver.incomplete.*;
+import solver.util.Node;
+import solver.util.Route;
 import solver.util.Timer;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-
-// TODO: RUN WITH CHECKER BEFORE SUBMISSION
-
 public class Main {
-    static int TOTAL_RUNTIME = 269;
-    static int INTERNAL_RUNTIME = 30;
+    static int TOTAL_RUNTIME = 285;
+    static int INTERNAL_RUNTIME = 285;
 
     public static void main(String[] args) throws Exception {
         if (args.length == 0) {
@@ -30,37 +30,87 @@ public class Main {
 
         Timer watch = new Timer();
         VRPInstance instance = new VRPInstance(input);
-        double objVal = Double.POSITIVE_INFINITY;
+        double bestObjVal = Double.POSITIVE_INFINITY;
         String solution = "";
+        Route[] bestRoutes = null;
         watch.start();
         // Complete algorithm if numCustomers low enough
         if (instance.numCustomers < 20) {
             IPModel ipModel = new IPModel(instance);
-            objVal = ipModel.solve();
+            bestObjVal = ipModel.solve();
             solution = ipModel.solutionToString();
             ipModel.solutionToFile(filename);
+            // Lazy constraint IP model -> failed terribly, way too slow :(
+            // IPModelLazy ipModelLazy = new IPModelLazy(instance);
+            // objVal = ipModelLazy.solve();
+            // solution = ipModelLazy.solutionToString();
+            // ipModelLazy.solutionToFile(filename);
         } else {
-            Timer timer = new Timer();
-            timer.start();
-            // while (timer.getTime() < TOTAL_RUNTIME) {
-                // SimulatedAnnealing solver = new SimulatedAnnealing(instance, INTERNAL_RUNTIME, 1.0, 0.999999);
-                // BestImprovement solver = new BestImprovement(instance, INTERNAL_RUNTIME);
-                // RandomizedIteratedImprovement solver = new RandomizedIteratedImprovement(instance, INTERNAL_RUNTIME);
-                DisturbedBestImprovement solver = new DisturbedBestImprovement(instance, INTERNAL_RUNTIME);
+            while (watch.getTime() < TOTAL_RUNTIME) {
+                // BestImprovement solver = new BestImprovement(instance);
+                // RandomizedIteratedImprovement solver = new RandomizedIteratedImprovement(instance);
+                // DisturbedBestImprovement solver = new DisturbedBestImprovement(instance);
+                LocalExplorationDisturbedBestImprovement solver = new LocalExplorationDisturbedBestImprovement(instance);
+                // SimulatedAnnealing solver = new SimulatedAnnealing(instance, 1.0, 0.999999);
+                solver.setRuntime(Math.min(INTERNAL_RUNTIME, TOTAL_RUNTIME - (int) watch.getTime()));
                 double currObjVal = solver.solve();
-                if (currObjVal < objVal) {
-                    objVal = currObjVal;
-                    solution = solver.bestSolutionToString();
-                    solver.bestSolutionToFile(filename);
+                if (currObjVal < bestObjVal) {
+                    bestObjVal = currObjVal;
+                    bestRoutes = solver.bestRoutes;
                 }
-            // }
+            }
         }
         watch.stop();
+        // Save solutions and turn into string if not IP model
+        if (instance.numCustomers >= 20) {
+            // Check solutions
+            Checker checker = new Checker();
+            boolean correct = checker.check(instance, bestRoutes);
+            if (!correct) {
+                throw new Exception("INCORRECT SOLUTION");
+            }
+            solution = solutionToString(bestRoutes);
+            solutionToFile(bestObjVal, bestRoutes, filename);
+        }
 
+        // TODO: Change output
         System.out.println("{\"Instance\": \"" + filename +
                 "\", \"Time\": " + String.format("%.2f",watch.getTime()) +
-                ", \"Result\": " + String.format("%.2f", objVal) +
+                ", \"Result\": " + String.format("%.2f", bestObjVal) +
                 ", \"Solution\": \"" + solution +  "\"}");
+    }
 
+
+    // SOLUTION UTILS
+
+    public static String solutionToString(Route[] routes) {
+        String solution = "";
+        for (Route r : routes) {
+            solution += "0 ";
+            Node curr = r.routeCycle.depot.next;
+            while (curr != r.routeCycle.depot) {
+                solution += String.format("%d ", curr.customer);
+                curr = curr.next;
+            }
+            solution += "0 ";
+        }
+        return solution;
+    }
+
+    public static void solutionToFile(double objVal, Route[] routes, String filename) throws FileNotFoundException {
+        PrintStream out = new PrintStream(new FileOutputStream("solutions/" + filename + ".sol"));
+        String solution = String.format("%.2f 0", objVal);
+        for (Route r : routes) {
+            solution += "\n0 ";
+            Node curr = r.routeCycle.depot.next;
+            while (curr != r.routeCycle.depot) {
+                solution += String.format("%d ", curr.customer);
+                curr = curr.next;
+            }
+            solution += "0";
+        }
+        out.print(solution);
+        out.flush();
+        out.close();
     }
 }

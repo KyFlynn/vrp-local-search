@@ -1,41 +1,53 @@
 package solver.complete;
 
+import ilog.concert.*;
+import ilog.cplex.*;
 import solver.VRPInstance;
-
-import ilog.concert.IloException;
-import ilog.concert.IloNumExpr;
-import ilog.concert.IloNumVar;
-import ilog.concert.IloNumVarType;
-import ilog.cplex.IloCplex;
-import ilog.cplex.IloCplex.Callback.Context;
-// .Callback.Context
-import solver.incomplete.BestImprovement;
 import solver.incomplete.DisturbedBestImprovement;
-import solver.util.Node;
-import solver.util.Route;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
-import java.lang.Math;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-// IP complete algorithm approach (dynamic subtour constraints)
-public class IPModel {
+public class IPModelLazy {
+
+    /** Epsilon used for lazy constraint checks. */
+    private static double EPS = 1e-6;
+
     IloCplex cp;
     VRPInstance vrp;
     IloNumVar[][][] vehicleArcChoice;
-    boolean feasible = false;
 
-    // Constructor
-    public IPModel(VRPInstance vrp) throws Exception {
+    public IPModelLazy(VRPInstance vrp) throws Exception {
         this.cp = new IloCplex();
-       // OutputStream out = new FileOutputStream("output.txt");
-       // this.cp.setOut(out);
         this.vrp = vrp;
         this.initIPModel();
     }
+
+    public double solve() throws IloException {
+        // Now we get to setting up the generic callback.
+        // We instantiate a FacilityCallback and set the contextMask parameter.
+        VRPCallback cb = new VRPCallback(vehicleArcChoice, vrp);
+        long contextMask = 0;
+        contextMask |= IloCplex.Callback.Context.Id.Candidate;
+        cp.use(cb, contextMask);
+
+        if ( !cp.solve() )
+            throw new RuntimeException("No feasible solution found");
+
+        System.out.println("Solution status:                   " +
+                cp.getStatus());
+        System.out.println("Active user cuts/lazy constraints: " +
+                cp.getNcuts(IloCplex.CutType.User));
+        double objVal = cp.getObjValue();
+        System.out.println("Optimal value:                     " +
+                objVal);
+        return objVal;
+    }
+
 
     // Initialize model
     public void initIPModel() throws Exception {
@@ -132,10 +144,10 @@ public class IPModel {
         IloNumExpr[] distances = getDistances();
 
         // Restrict objective value to smaller than some feasible initial solution:
-        // DisturbedBestImprovement solver = new DisturbedBestImprovement(vrp, 0);
-        // solver.runtime = 30;
-        // solver.solve();
-        // cp.addLe(cp.sum(distances), solver.bestObjVal);
+        DisturbedBestImprovement solver = new DisturbedBestImprovement(vrp);
+        solver.runtime = 30;
+        solver.solve();
+        cp.addLe(cp.sum(distances), solver.bestObjVal);
 
         // Objective function
         cp.addMinimize(cp.sum(distances));
@@ -164,41 +176,46 @@ public class IPModel {
         return totalDistance;
     }
 
-    // Get the vehicle route information into a nice adjacency chart.
-    private int[][][] getVariableValues() throws IloException {
-        // Let's grab the variables out bc they ain't shit
-        int[][][] M = new int[vrp.numVehicles][vrp.numCustomers][vrp.numCustomers];
-        for (int v = 0; v < vrp.numVehicles; v++) {
-            for (int i = 0; i < vrp.numCustomers; i++) {
-                for (int j = 0; j < vrp.numCustomers; j++) {
-                    M[v][i][j] = (int) cp.getValue(vehicleArcChoice[v][i][j]);
-                }
-            }
+    /**
+     * This is the class implementing the generic callback interface to add constraints lazily.
+     */
+    private static class VRPCallback implements IloCplex.Callback.Function {
+        private final IloNumVar[][][] vehicleArcChoice;
+        private final VRPInstance vrp;
+        public VRPCallback(IloNumVar[][][] vehicleArcChoice,
+                                VRPInstance vrp)
+        {
+            this.vehicleArcChoice = vehicleArcChoice;
+            this.vrp = vrp;
         }
-        return M;
-    }
 
-    // Solve - this will loop until there are no subtours
-    public double solve() throws Exception {
-        feasible = true;
-        while (true) {
-            feasible = cp.solve();
-            double objVal = cp.getObjValue();
-            int[][][] M = getVariableValues();
-            boolean subtoursExist = false;
-            // System.out.println(Arrays.deepToString(M));
+        /**
+         * Lazy constraint callback to enforce the subtour constraints dynamically.
+         *
+         * If used then the callback is invoked for every integer feasible
+         * solution CPLEX finds. For each location j it checks whether
+         * constraint
+         *    sum(c in C) supply[c][j] <= (|C| - 1) * opened[j]
+         * is satisfied. If not then it adds the violated constraint as lazy
+         * constraint.
+         */
+        private void lazySubtourConstraint (IloCplex.Callback.Context context) throws Exception {
+            final IloCplexModeler m = context.getCplex();
+            if ( !context.isCandidatePoint() )
+                throw new IloException("Unbounded solution");
+
             // 1) DFS starting at the depot to see which customers are in a valid tour.
             boolean[] visited = new boolean[vrp.numCustomers];
             for (int v = 0; v < vrp.numVehicles; v++) {
                 // Keep track of the tour for printing.
-                // ArrayList<Integer> tour = new ArrayList<>();
+                ArrayList<Integer> tour = new ArrayList<>();
                 // Start at depot.
                 int curr = 0;
-                // tour.add(curr);
+                tour.add(curr);
                 visited[curr] = true;
                 // Check if an exit exists from the depot.
                 for (int i = 1; i < vrp.numCustomers; i++) {
-                    if (M[v][curr][i] == 1) {
+                    if (Math.abs(context.getCandidatePoint(vehicleArcChoice[v][curr][i]) - 1) < EPS) {
                         curr = i;
                         break;
                     }
@@ -208,33 +225,38 @@ public class IPModel {
                     while (true) {
                         // Mark as visited.
                         visited[curr] = true;
-                        // tour.add(curr);
+                        tour.add(curr);
 
                         // Check if we go to the depot next; if so we are done.
-                        if (M[v][curr][0] == 1) {
+                        if (Math.abs(context.getCandidatePoint(vehicleArcChoice[v][curr][0]) - 1) < EPS) {
                             break;
                         }
 
                         // Otherwise, travel through the arc
                         boolean found = false;
                         for (int dest = 1; dest < vrp.numCustomers; dest++) {
-                            if (M[v][curr][dest] == 1) {
+                            if (Math.abs(context.getCandidatePoint(vehicleArcChoice[v][curr][dest]) - 1) < EPS) {
                                 curr = dest;
                                 found = true;
                                 break;
                             }
                         }
                         if (!found) {
-                            // System.out.println(Arrays.deepToString(M));
+                            System.out.println(String.format("Issue with tour in vehicle %d found:", v));
+                            for (int i = 0; i < tour.size(); i++) {
+                                System.out.print(String.format("%d ", tour.get(i)));
+                            }
+                            System.out.println("");
+                            printCandidateValues(context);
                             throw new Exception("Path is not a tour, model was implemented incorrectly.");
                         }
                     }
                 }
-               // System.out.println("Tour found:");
-               // for (int i = 0; i < tour.size(); i++) {
-               //     System.out.print(String.format("%d ", tour.get(i)));
-               // }
-               // System.out.println("");
+                // System.out.println("Tour found:");
+                // for (int i = 0; i < tour.size(); i++) {
+                //     System.out.print(String.format("%d ", tour.get(i)));
+                // }
+                // System.out.println("");
             }
 
             // 2) DFS through all other arcs for this vehicle to see which customers are in a subtour.
@@ -246,7 +268,7 @@ public class IPModel {
                         // Customer already included in a discovered tour/subtour
                         if (visited[j]) continue;
                         // Subtour arc found
-                        if (M[v][i][j] == 1) {
+                        if (Math.abs(context.getCandidatePoint(vehicleArcChoice[v][i][j]) - 1) < EPS) {
                             // Keep track of this subtour
                             ArrayList<Integer> subtourCustomers = new ArrayList<>();
                             // Source is i
@@ -262,14 +284,14 @@ public class IPModel {
                                 subtourCustomers.add(curr);
 
                                 // Check if we go to the source of the subtour next; if so we are done.
-                                if (M[v][curr][src] == 1) {
+                                if (Math.abs(context.getCandidatePoint(vehicleArcChoice[v][curr][src]) - 1) < EPS) {
                                     break;
                                 }
 
                                 // Otherwise, go through the next arc in the subtour.
                                 boolean found = false;
                                 for (int dest = 1; dest < vrp.numCustomers; dest++) {
-                                    if (M[v][curr][dest] == 1) {
+                                    if (Math.abs(context.getCandidatePoint(vehicleArcChoice[v][curr][dest]) - 1) < EPS) {
                                         curr = dest;
                                         found = true;
                                         break;
@@ -286,36 +308,102 @@ public class IPModel {
                                 //     System.out.print(String.format("%d ", subtourCustomers.get(c)));
                                 // }
                                 // System.out.println("");
-                                ArrayList<IloNumExpr> subtourEdges = new ArrayList<>();
+                                IloLinearNumExpr subtourEdges = m.linearNumExpr();
                                 for (int veh = 0; veh < vrp.numVehicles; veh++) {
-                                    subtourEdges.add(
+                                    subtourEdges.addTerm(1,
                                             vehicleArcChoice[veh][subtourCustomers.get(subtourCustomers.size()-1)][subtourCustomers.get(0)]);
-                                    subtourEdges.add(
+                                    subtourEdges.addTerm(1,
                                             vehicleArcChoice[veh][subtourCustomers.get(0)][subtourCustomers.get(subtourCustomers.size()-1)]);
                                     for (int c = 1; c < subtourCustomers.size(); c++) {
-                                        subtourEdges.add(
+                                        subtourEdges.addTerm(1,
                                                 vehicleArcChoice[veh][subtourCustomers.get(c-1)][subtourCustomers.get(c)]);
-                                        subtourEdges.add(
+                                        subtourEdges.addTerm(1,
                                                 vehicleArcChoice[veh][subtourCustomers.get(c)][subtourCustomers.get(c-1)]);
                                     }
                                 }
                                 // Restrict objective value to larger values
-                                // cp.addGe(cp.sum(getDistances()), objVal);
-                                // Ban subtour
-                                cp.addLe(
-                                    cp.sum(
-                                        subtourEdges.toArray(new IloNumExpr[subtourEdges.size()])),
-                                        (subtourEdges.size() / (2 * vrp.numVehicles)) - 1);
-                                subtoursExist = true;
+                                // context.rejectCandidate(m.ge(m.sum(getDistances(m)), context.getCandidateObjective()));
+                                // Reject candidate with subtour:
+                                context.rejectCandidate(m.le(subtourEdges, subtourCustomers.size() - 1));
+                                // System.out.println("Adding lazy capacity constraint " + subtourEdges +
+                                //         " <= " + (subtourCustomers.size() - 1));
                             }
                         }
                     }
                 }
             }
-            if (!subtoursExist) {
-                return cp.getObjValue();
+        }
+
+        // Get the vehicle route information into a nice adjacency chart.
+        private void printCandidateValues(IloCplex.Callback.Context context) throws IloException {
+            int[][][] M = new int[vrp.numVehicles][vrp.numCustomers][vrp.numCustomers];
+            for (int v = 0; v < vrp.numVehicles; v++) {
+                for (int i = 0; i < vrp.numCustomers; i++) {
+                    for (int j = 0; j < vrp.numCustomers; j++) {
+                        M[v][i][j] = (int) context.getCandidatePoint(vehicleArcChoice[v][i][j]);
+                    }
+                }
+            }
+            System.out.println(Arrays.deepToString(M));;
+        }
+
+        // Expression of distances using variable values
+        private IloNumExpr[] getDistances(IloCplexModeler m) throws IloException {
+            // Objective function
+            IloNumExpr[] totalDistance = new IloNumExpr[vrp.numVehicles * vrp.numCustomers * vrp.numCustomers];
+            int idx = 0;
+            for (int i = 0; i < vrp.numCustomers; i++) {
+                for (int j = 0; j < vrp.numCustomers; j++) {
+                    double distance = Math.sqrt(
+                            Math.pow(vrp.xCoordOfCustomer[i] - vrp.xCoordOfCustomer[j], 2) +
+                                    Math.pow(vrp.yCoordOfCustomer[i] - vrp.yCoordOfCustomer[j], 2)
+                    );
+                    for (int v = 0; v < vrp.numVehicles; v++) {
+                        totalDistance[idx] = m.prod(vehicleArcChoice[v][i][j], distance);
+                        idx++;
+                    }
+                }
+            }
+            return totalDistance;
+        }
+
+        /**
+         * Implements the required invoke method.
+         *
+         * This is the method that we have to implement to fulfill the
+         * generic callback contract. CPLEX will call this method during
+         * the solution process at the places that we asked for.
+         */
+        @Override
+        public void invoke (IloCplex.Callback.Context context) {
+            if (context.inCandidate()) {
+                try {
+                    lazySubtourConstraint (context);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
+
+
+    }
+
+    // ==================
+    // UTILS
+    // ==================
+
+    // Get the vehicle route information into a nice adjacency chart.
+    private int[][][] getVariableValues() throws IloException {
+        // Let's grab the variables out bc they ain't shit
+        int[][][] M = new int[vrp.numVehicles][vrp.numCustomers][vrp.numCustomers];
+        for (int v = 0; v < vrp.numVehicles; v++) {
+            for (int i = 0; i < vrp.numCustomers; i++) {
+                for (int j = 0; j < vrp.numCustomers; j++) {
+                    M[v][i][j] = (int) cp.getValue(vehicleArcChoice[v][i][j]);
+                }
+            }
+        }
+        return M;
     }
 
     //  Extracts the solution into the desired format
@@ -364,7 +452,7 @@ public class IPModel {
     }
 
     public void solutionToFile(String filename) throws FileNotFoundException, IloException {
-        String s = String.format("%.2f %d\n", cp.getObjValue(), feasible ? 1 : 0);
+        String s = String.format("%.2f %d\n", cp.getObjValue(), 1);
         int[][][] M = getVariableValues();
         for (int v = 0; v < vrp.numVehicles; v++) {
             String row = "0 ";
@@ -403,9 +491,10 @@ public class IPModel {
             // Once we are back to the depot, add this row and do the next vehicle.
             s += row + "\n";
         }
-        PrintStream out = new PrintStream(new FileOutputStream("solutions/" + filename + ".sol"));
+        PrintStream out = new PrintStream(new FileOutputStream("input/" + filename + ".sol"));
         out.print(s);
         out.flush();
         out.close();
     }
+
 }
