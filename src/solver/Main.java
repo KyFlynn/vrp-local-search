@@ -94,7 +94,7 @@ public class Main {
             }
             solution += "0 ";
         }
-        return solution;
+        return solution.trim();
     }
 
     public static void solutionToFile(double objVal, Route[] routes, String filename) throws FileNotFoundException {
