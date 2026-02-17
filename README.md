@@ -1,0 +1,1 @@
+I built a solver that iteratively constructed greedy solutions and then disturbed them to solve large-scale vehicle routing problems. The solver leveraged a simple proxy of local surface information to avoid getting stuck in local minima, and was top-performing in the class competition in both speed and solution quality.
